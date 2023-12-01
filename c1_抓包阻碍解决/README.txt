@@ -11,7 +11,7 @@ vpn检测：
 
 
 c校验s：
-    (*) pinning_DroidSSLUnpinning.js
+    (*) pinning_DroidSSLUnpinning.js  # https://github.com/WooyunDota/DroidSSLUnpinning
     (*) pinning_multi_unpinning.js
     (*) pinning_just_trust_me_frida.js    【来自hooker项目】
     (*) 修改HTTPS(find_url.js)
@@ -20,7 +20,7 @@ c校验s：
     okhttp：
         pinning_hook_okhttp3.js(推荐度一般) TODO (不必配合抓包工具，单纯hook查看内容，然后进行调用栈分析)
     okhttp混淆：
-        pinning_just_trust_me_okhttp_hook_finder.js 【来自hooker项目】  (radar.dex)(找到混淆的类后，再使用hook_okhttp3.js)
+        pinning_just_trust_me_okhttp_hook_finder.js 【来自hooker项目】  (radar.dex)(找到混淆的类后，再使用pinning_hook_okhttp3.js)
         OkHttpLogger-Frida (https://github.com/siyujie/OkHttpLogger-Frida)
 
     TODO 以上还不行的话就Hook File函数，因为客户端一定会加载证书，由此一定会定位到证书绑定的代码位置。
@@ -31,6 +31,7 @@ s校验c：
     (*) cert_keystore_dump.js    【来自hooker项目】
     (*) r0capture中keystore相关  (https://github.com/r0ysue/r0capture)
     (*) hook_android_Cert
+
 
 hook原生系统底层：TODO (不必配合抓包工具，单纯hook查看内容，然后进行调用栈分析)
     all_in_one.js
@@ -58,17 +59,25 @@ hook原生系统底层：TODO (不必配合抓包工具，单纯hook查看内容
             自实现内联汇编sendto/recvfrom       (内存扫描+inline hook)、(ptrace(seccomp过滤) + PTRACE_SYSCALL)
             自实现内联汇编syscall + sendto/recvfrom调用号
 
+[-]
+[+]
 
-抓包阻碍大致解决流程：
+【抓包阻碍大致解决流程】：
 vpn检测：hook_vpn.js
-    c校验s：pinning_DroidSSLUnpinning.js、pinning_multi_unpinning.js、pinning_just_trust_me_frida.js、pinning_File.js
-      (*)okhttp：pinning_hook_okhttp3.js(推荐度一般)
-      (*)okhttp混淆：pinning_just_trust_me_okhttp_hook_finder.js、OkHttpLogger-Frida
+    c校验s：
+      pinning_DroidSSLUnpinning.js、pinning_multi_unpinning.js、pinning_just_trust_me_frida.js
+      综合：pinning_SSLUnPinning.js
+      暴力：pinning_SSLUnPinning2.js
+      通用：pinning_File.js [TODO] 证书直接硬编码在代码里面，pinnning_File.js也无办法
+      (针对)：okhttp：pinning_hook_okhttp3.js(推荐度一般)
+      (针对)：okhttp混淆：pinning_just_trust_me_okhttp_hook_finder.js、OkHttpLogger-Frida
+      (备用)：单步调试frida：https://bbs.kanxue.com/thread-265160.htm
+           cert_20201128capture.js【通过hook不让进程被kill从而过掉校验服务端证书，缺点:正常kill进程的逻辑也失效了。】
 
-        s校验c： r0capture中keystore相关：cert_saveClientCer.js、cert_saveClientCer2.js、cert_savePrivateKey.js
-               其他：cert_hook_android_Cert、cert_keystore_dump.js、cert_tracer_keystore.js
-               cert_20201128capture.js(通过hook不让进程被kill)
 
+
+        s校验c： [r0capture中keystore相关]：cert_saveClientCer.js、cert_saveClientCer2.js、cert_savePrivateKey.js
+                                  [其他]：cert_hook_android_Cert、cert_keystore_dump.js、cert_tracer_keystore.js
             原生系统底层：lesson7_all_in_one.js
                 其他情况：( 针对于拓展了解[防御篇] )：
                     hook syscall

@@ -1,7 +1,8 @@
 .idea/
 __pycache__/
-./agent
-./node_modules/
+
+agent/
+node_modules/
 
 _agent.js
 package.json

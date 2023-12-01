@@ -1,59 +1,114 @@
-function searchInterface() {
-    Java.perform(function () {
-            Java.enumerateLoadedClasses({
-                onComplete: function () {
-                },
+function search_implementation_class(target_interface, package_name = "") {
+    var all_target_class = new Set();
+    Java.enumerateLoadedClasses({
+        onComplete: function () {
+        },
 
-                onMatch: function (name, handle) {
-                    //TODO 按包名过滤类
-                    let packageName = "com.hexl.lessontest.logic";
-                    if (name.indexOf(packageName) > -1) {
-                        // TODO 目标接口
-                        var targetInterface = "com.hexl.lessontest.logic.IAnima";
-                        if (targetInterface === name) {
-                            return;
-                        }
-                        console.log("find class");
-                        var targetClass = Java.use(name);
-                        console.log("当前类: ", name);
+        onMatch: function (name, handle) {
+            if (package_name && name.indexOf(package_name) < 0) {
+                return;
+            }
+            var valid_class_list = [];
+            try {
+                var currentCls = Java.use(name);
+                var parentClass;
+                var status = false;
+                while (true) {
+                    // 遍历类实现的接口
+                    let class_name = currentCls.$className;
+                    valid_class_list.push(class_name);
 
-
-                        var superClassName;
-                        //向上递归遍历类实现的接口、其父类实现的接口
-                        while (1) {
-                            // if (targetClassName.indexOf(packageName) > -1) {
-                            //     //找到其他包、或者说其他应用里面去了
-                            //     break
-                            // }
-
-                            //遍历类实现的接口
-                            var interfaceList = targetClass.class.getInterfaces();
-                            if (interfaceList.length > 0) {
-                                for (var i in interfaceList) {
-                                    var interString = interfaceList[i].toString();
-                                    //如果该接口包含目标接口，则打印出来
-                                    if (interString.indexOf(targetInterface) > -1) {
-                                        console.log("\t目标接口: ", interString); //
-                                        break;
-                                    }
-                                }
-                            }
-
-                            //继续去找父类
-                            superClassName = targetClass.$super.$className;
-                            console.log("\t父类: ", superClassName) // 打印类名
-                            if (superClassName === "java.lang.Object") {
-                                break;
-                            }
-
-                            //下一轮循环
-                            targetClass = targetClass.$super;
+                    let interfaceList = currentCls.class.getInterfaces();
+                    for (let s_interface of interfaceList) {
+                        var interface_name = s_interface.toString();
+                        if (interface_name.indexOf(target_interface) > -1) {
+                            console.log(`找到目标接口的实现类, 接口名:${interface_name}, 类名:${class_name}`);
+                            status = true;
+                            break;
                         }
                     }
+                    // 继续去父类找
+                    parentClass = currentCls.$super;
+                    if (parentClass.$className === "java.lang.Object") {
+                        if (status) {
+                            for (let valid_class of valid_class_list) {
+                                all_target_class.add(valid_class);
+                            }
+                        }
+                        break;
+                    }
+
+                    //进入下一轮循环
+                    currentCls = parentClass;
                 }
-            })
+            } catch (e) {
+                // console.error(e.message);
+            }
+
         }
-    )
+    });
+
+    console.log("结束, 结果如下 =======>");
+    for (let item of all_target_class.values()) {
+        console.log(item);
+    }
+
 }
 
-setImmediate(searchInterface)
+function search_sub_class(target_class, package_name = "") {
+    var all_target_class = new Set();
+    Java.enumerateLoadedClasses({
+        onComplete: function () {
+        },
+
+        onMatch: function (name, handle) {
+            if (package_name && name.indexOf(package_name) < 0) {
+                return;
+            }
+            var valid_class_list = [];
+            try {
+                var currentCls = Java.use(name);
+                var parentClass;
+                var parentClassName;
+                while (true) {
+                    // 遍历类实现的接口
+                    let class_name = currentCls.$className;
+                    valid_class_list.push(class_name);
+
+                    parentClass = currentCls.$super;
+                    parentClassName = parentClass.$className;
+                    if (parentClassName.indexOf(target_class) > -1) {
+                        valid_class_list.push(parentClassName);
+                        for (let valid_class of valid_class_list) {
+                            all_target_class.add(valid_class);
+                        }
+                        break;
+                    }
+                    if (parentClassName === "java.lang.Object") {
+                        break;
+                    }
+
+                    //进入下一轮循环
+                    currentCls = parentClass;
+                }
+            } catch (e) {
+                // console.error(e.message);
+            }
+
+        }
+    });
+
+    console.log("结束, 结果如下 =======>");
+    for (let item of all_target_class.values()) {
+        console.log(item);
+    }
+
+}
+
+
+function main() {
+    search_implementation_class("X509TrustManager");
+    search_sub_class("OpenSSLSocketImpl");
+}
+
+// setImmediate(hook2)
