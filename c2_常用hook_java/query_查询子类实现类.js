@@ -1,10 +1,60 @@
+function search_sub_class(target_class, package_name = "") {
+    var all_target_class = new Set();
+    Java.enumerateLoadedClasses({
+        onComplete: function () {
+        },
+
+        onMatch: function (name, owner) {
+            if (package_name && name.indexOf(package_name) < 0) {
+                return;
+            }
+            var valid_class_list = [];
+            try {
+                var currentCls = Java.use(name);
+                var parentClass;
+                var parentClassName;
+                while (true) {
+                    // 遍历类实现的接口
+                    let class_name = currentCls.$className;
+                    valid_class_list.push(class_name);
+
+                    parentClass = currentCls.$super;
+                    parentClassName = parentClass.$className;
+                    if (parentClassName.indexOf(target_class) > -1) {
+                        valid_class_list.push(parentClassName);
+                        for (let valid_class of valid_class_list) {
+                            all_target_class.add(valid_class);
+                        }
+                        break;
+                    }
+                    if (parentClassName === "java.lang.Object") {
+                        break;
+                    }
+
+                    //进入下一轮循环
+                    currentCls = parentClass;
+                }
+            } catch (e) {
+                // console.error(e.message);
+            }
+
+        }
+    });
+
+    console.log("结束, 结果如下 =======>");
+    for (let item of all_target_class.values()) {
+        console.log(item);
+    }
+
+}
+
 function search_implementation_class(target_interface, package_name = "") {
     var all_target_class = new Set();
     Java.enumerateLoadedClasses({
         onComplete: function () {
         },
 
-        onMatch: function (name, handle) {
+        onMatch: function (name, owner) {
             if (package_name && name.indexOf(package_name) < 0) {
                 return;
             }
@@ -55,60 +105,10 @@ function search_implementation_class(target_interface, package_name = "") {
 
 }
 
-function search_sub_class(target_class, package_name = "") {
-    var all_target_class = new Set();
-    Java.enumerateLoadedClasses({
-        onComplete: function () {
-        },
-
-        onMatch: function (name, handle) {
-            if (package_name && name.indexOf(package_name) < 0) {
-                return;
-            }
-            var valid_class_list = [];
-            try {
-                var currentCls = Java.use(name);
-                var parentClass;
-                var parentClassName;
-                while (true) {
-                    // 遍历类实现的接口
-                    let class_name = currentCls.$className;
-                    valid_class_list.push(class_name);
-
-                    parentClass = currentCls.$super;
-                    parentClassName = parentClass.$className;
-                    if (parentClassName.indexOf(target_class) > -1) {
-                        valid_class_list.push(parentClassName);
-                        for (let valid_class of valid_class_list) {
-                            all_target_class.add(valid_class);
-                        }
-                        break;
-                    }
-                    if (parentClassName === "java.lang.Object") {
-                        break;
-                    }
-
-                    //进入下一轮循环
-                    currentCls = parentClass;
-                }
-            } catch (e) {
-                // console.error(e.message);
-            }
-
-        }
-    });
-
-    console.log("结束, 结果如下 =======>");
-    for (let item of all_target_class.values()) {
-        console.log(item);
-    }
-
-}
-
 
 function main() {
-    search_implementation_class("X509TrustManager");
     search_sub_class("OpenSSLSocketImpl");
+    search_implementation_class("X509TrustManager");
 }
 
 // setImmediate(hook2)

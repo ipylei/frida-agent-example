@@ -19,12 +19,12 @@ function hook_vpn() {
 
 
         //情况一
-        //var ConnectivityManager = Java.use("android.net.ConnectivityManager");
-        //ConnectivityManager.getNetworkCapabilities.implementation = function (arg) {
-        //    var result = this.getNetworkCapabilities(arg);
-        //    console.log("find getNetworkCapabilities：", result);
-        //    return null;
-        //}
+        var ConnectivityManager = Java.use("android.net.ConnectivityManager");
+        ConnectivityManager.getNetworkCapabilities.implementation = function (arg) {
+            var result = this.getNetworkCapabilities(arg);
+            console.log("find getNetworkCapabilities：", result);
+            return null;
+        }
 
         //情况二 (2选1)
         Java.use("android.net.NetworkCapabilities").hasTransport.implementation = function (v) {

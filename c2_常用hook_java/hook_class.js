@@ -33,7 +33,7 @@ function printStack(tag = "") {
 function findClass() {
     Java.perform(function () {
         Java.enumerateLoadedClasses({
-            onMatch: function (name, handle) {
+            onMatch: function (name, owner) {
                 if (name.indexOf("com.jd.security.jdguard.core") != -1) {
                     console.log(name);
                     //console.log(name, handle);
@@ -57,6 +57,7 @@ function findClass() {
 
 //打印出一个类的所有方法
 function dumpClass(clsName) {
+
     let targetClass = Java.use(clsName);
 
     //利用反射，得到类下面的所有方法
@@ -103,7 +104,7 @@ function hook_overloads(className, methodName, mode) {
             }
             if (mode >= 2) {
                 let fullNameWithArguments = fullMethodName + '(' + paramsArray.join(", ") + ')';
-                console.log(`Arguments: ${fullNameWithArguments}`);
+                console.log(`${color.green} Arguments: ${color.red}${fullNameWithArguments}`);
             }
 
             //3.打印调用栈
@@ -116,11 +117,12 @@ function hook_overloads(className, methodName, mode) {
                 //TODO 所以在里面的this为EE类或者EE类的实例
                 let ret = this[methodName].apply(this, arguments);
                 if (mode >= 2) {
-                    console.log('========> Return Value: ', fullNameWithParams, JSON.stringify(ret));
+                    console.log(`${color.green} Return Value: ${fullNameWithParams}`);
+                    console.log("===>", JSON.stringify(ret));
                 }
                 return ret;
             } catch (e) {
-                console.log("报错啦", e.message);
+                console.error("调用原来的方法报错啦！", e.message);
             }
             //================================
         }
@@ -139,10 +141,9 @@ function hookClass(clsName) {
         //利用反射，得到类下面的所有方法
         let methodsArray = [];
         let methods = targetClass.class.getDeclaredMethods();
-        //构造函数有问题，因为获取到的是 类名(参数1, ...)，然而hook应该是.$init
+        //构造函数有问题，因为获取到的是：类名(参数1, 参数2 ...)，然而hook应该写成：.$init
         //let constructors = targetClass.class.getDeclaredConstructors();
         //methods = methods.concat(constructors);
-
         let targetMethods = ["$init"];
 
         //遍历所有方法，去重(因为这里会列出重载的方法，而下面.overloads又会再一次列出重载方法)

@@ -4,6 +4,38 @@ function getContext() {
     return currentApplication.getApplicationContext();
 }
 
+//分割输出
+function printSeparator(mode = "start", num = 50) {
+    if (mode === "start") {
+        console.log(">>>" + "-".repeat(num));
+    } else if (mode === "end") {
+        console.log("<<<" + "-".repeat(num) + '\n');
+    }
+}
+
+//获取对象的所有信息
+function dump_obj(obj) {
+    Java.perform(function () {
+        const Class = Java.use("java.lang.Class");
+        const obj_class = Java.cast(obj.getClass(), Class);
+        const fields = obj_class.getDeclaredFields();
+        const methods = obj_class.getMethods();
+        console.log("Inspecting " + obj.getClass().toString());
+        console.log("\tFields:");
+        for (var i in fields) {
+            // console.log("\t\t" + fields[i].toString());
+            var className = obj_class.toString().trim().split(" ")[1];
+            // console.log("className is => ",className);
+            var fieldName = fields[i].toString().split(className.concat(".")).pop();
+            console.log(fieldName + " => ", obj[fieldName].value);
+        }
+        // console.log("\tMethods:");
+        // for (var i in methods)
+        //     console.log("\t\t" + methods[i].toString());
+    })
+}
+
+
 //java层打印调用栈
 function printStack(tag = "") {
     let threadClz = Java.use("java.lang.Thread");
@@ -27,16 +59,6 @@ function printStackSimple() {
 
 //so层打印调用栈
 console.log('RegisterNatives called from:\n' + Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress).join('\n') + '\n');
-
-
-//分割输出
-function printSeparator(mode = "start", num = 50) {
-    if (mode === "start") {
-        console.log(">>>" + "-".repeat(num));
-    } else if (mode === "end") {
-        console.log("<<<" + "-".repeat(num) + '\n');
-    }
-}
 
 
 /* 【***】 打印Java层内建数据类型
