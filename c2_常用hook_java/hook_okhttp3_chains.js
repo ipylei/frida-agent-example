@@ -18,7 +18,6 @@ function hook_chains() {
             //var f7772c = this._c.value;
             //console.log("---", f7772c.$className);
 
-
             var response = chain.proceed(request); //不加密
             //var response = this["intercept"](chain); //加密
             return response;

@@ -26,9 +26,13 @@ function hook_RegisterNatives(addrRegisterNatives) {
                 let class_name = Java.vm.tryGetEnv().getClassName(java_class);
                 let methods_ptr = ptr(args[2]);
                 let method_count = parseInt(args[3]);
+
                 for (let i = 0; i < method_count; i++) {
+                    //java层方法名
                     let name_ptr = Memory.readPointer(methods_ptr.add(i * Process.pointerSize * 3));
+                    //java层方法签名
                     let sig_ptr = Memory.readPointer(methods_ptr.add(i * Process.pointerSize * 3 + Process.pointerSize));
+                    //JNI层方法名
                     let fnPtr_ptr = Memory.readPointer(methods_ptr.add(i * Process.pointerSize * 3 + Process.pointerSize * 2));
 
                     let name = Memory.readCString(name_ptr);
@@ -41,7 +45,6 @@ function hook_RegisterNatives(addrRegisterNatives) {
                     let module_addr = Module.findBaseAddress(module_name);
                     // console.log("[RegisterNatives] java_class:", class_name, "name:", name, "sig:", sig, "fnPtr:", fnPtr_ptr,  " fnOffset:", symbol, " callee:", DebugSymbol.fromAddress(this.returnAddress));
                     // console.log(`----->[RegisterNatives] 类名=> ${class_name}", 方法名=> ${name}, 方法签名=> ${sig}, 内存地址=>${fnPtr_ptr}, 所在模块信息=> ${symbol}, 调用者=> ${DebugSymbol.fromAddress(this.returnAddress)}`);
-
                     console.log(`----->[RegisterNatives] 类名=> ${class_name}", 方法名=> ${name}, 方法签名=> ${sig}, 所在模块名=> ${module_name}, offset=> ${fnPtr_ptr.sub(module_addr)}`);
                 }
             }

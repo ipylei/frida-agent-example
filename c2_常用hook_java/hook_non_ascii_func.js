@@ -9,6 +9,7 @@ function hook_non_ascii_func() {
             var methods = hookCls.class.getDeclaredMethods();
             for (var i in methods) {
                 console.log(methods[i].toString());
+                //将方法名编码后打印出来，hook时再解码
                 console.log(encodeURIComponent(methods[i].toString().replace(/^.*?\.([^\s\.\(\)]+)\(.*?$/, "$1")));
             }
             hookCls[decodeURIComponent("%D6%8F")]

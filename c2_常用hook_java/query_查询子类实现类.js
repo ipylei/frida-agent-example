@@ -18,6 +18,7 @@ function search_sub_class(target_class, package_name = "") {
                     let class_name = currentCls.$className;
                     valid_class_list.push(class_name);
 
+                    // 继续去父类找
                     parentClass = currentCls.$super;
                     parentClassName = parentClass.$className;
                     if (parentClassName.indexOf(target_class) > -1) {

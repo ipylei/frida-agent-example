@@ -73,7 +73,6 @@ function find_normal_function() {
             }
             //var addr = Module.findExportByName("liblessontest.so", "Java_com_hexl_lessontest_MainActivity_stringFromJNI");
             //console.log("---", addr);
-
         }
     })
 }

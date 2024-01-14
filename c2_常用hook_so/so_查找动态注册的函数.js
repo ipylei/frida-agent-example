@@ -82,7 +82,7 @@ function attach(addr) {
                     console.log('<' + module.name + '> method_name =>', prettyMethod(this.arg0, 1), ',offset=>', ptr(retval).sub(module.base), ',module_name=>', module.name)
                 }
             } else {
-                console.log('<anonymous> method_name =>', readStdString(string), ', addr =>', ptr(retval))
+                console.log("<anonymous> method_name =>", readStdString(string), ', addr =>', ptr(retval))
             }
         }
     });

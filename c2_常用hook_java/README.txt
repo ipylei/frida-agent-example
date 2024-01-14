@@ -17,7 +17,9 @@ hook_okhttp3_chains.js            //hook okhttp3打印出拦截器
 print_msg.js
 print_打印行号.js
 bypass_绕过root检测.js
-tools.js                          //常用工具
+
+tracer_java.js                          //常用工具
+tracer_so.js                            //常用工具
 
 
 let currentApplication = Java.use("android.app.ActivityThread").currentApplication();

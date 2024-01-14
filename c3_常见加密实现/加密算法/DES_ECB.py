@@ -60,12 +60,14 @@ plaintext = 'c97b6d788e49a8ad'  # pixel
 # plaintext = 'c97b6d777e49a8mm'
 
 ciphertext = des_encrypt(key, plaintext)
-# print('加密结果：', ciphertext)
-# print(len(list(ciphertext)), list(ciphertext))
+print('加密结果：', ciphertext)
+print(len(list(ciphertext)))
+print(list(ciphertext))
 
 # ret = encrypt(plaintext, key)
 bytes_python = list(des_encrypt(key, plaintext))
 print(bytes_python)
+
 # 大于128的转换成有符号[0~256) -> [-128, 128)
 bytes_java = [(b - 255 - 1) if b >= 128 else b for b in bytes_python]
 print(bytes_java)
@@ -77,5 +79,3 @@ print(sh_dv_sign)
 
 # [208, 86, 183, 220, 198, 182, 72, 253, 3, 36, 132, 191, 197, 116, 198, 81]
 
-
-#

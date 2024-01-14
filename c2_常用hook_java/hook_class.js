@@ -144,7 +144,12 @@ function hookClass(clsName) {
         //构造函数有问题，因为获取到的是：类名(参数1, 参数2 ...)，然而hook应该写成：.$init
         //let constructors = targetClass.class.getDeclaredConstructors();
         //methods = methods.concat(constructors);
-        let targetMethods = ["$init"];
+        let targetMethods = [];
+
+        let Constructors = targetMethods.class.getDeclaredConstructors();
+        if (Constructors && Constructors.length > 0) {
+            targetMethods.push("$init");
+        }
 
         //遍历所有方法，去重(因为这里会列出重载的方法，而下面.overloads又会再一次列出重载方法)
         for (let method of methods) {

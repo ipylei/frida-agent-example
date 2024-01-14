@@ -14,7 +14,9 @@ hook_init_array.js          (spwan模式注入)
 hook_init_array_copy.js     (spwan模式注入)
 hook_JNI_OnLoad.js          (spwan模式注入)
 
-hook_RegisterNatives.js     (spwan模式注入)
+hook_RegisterNatives.js          (spwan模式注入)
+hook_ArtMethodRegisterNatives.js (spwan模式注入)
+
 so_查找动态注册的函数.js        (spwan模式注入)
 so_查找静态注册的函数.js        (attach模式注入)
     在so文件中查找函数，使用Java层的方法名去各个so文件中查找。

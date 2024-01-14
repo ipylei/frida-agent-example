@@ -4,35 +4,13 @@ function getContext() {
     return currentApplication.getApplicationContext();
 }
 
-//分割输出
-function printSeparator(mode = "start", num = 50) {
-    if (mode === "start") {
-        console.log(">>>" + "-".repeat(num));
-    } else if (mode === "end") {
-        console.log("<<<" + "-".repeat(num) + '\n');
-    }
+
+function logStart() {
+    console.log("=>".repeat(50));
 }
 
-//获取对象的所有信息
-function dump_obj(obj) {
-    Java.perform(function () {
-        const Class = Java.use("java.lang.Class");
-        const obj_class = Java.cast(obj.getClass(), Class);
-        const fields = obj_class.getDeclaredFields();
-        const methods = obj_class.getMethods();
-        console.log("Inspecting " + obj.getClass().toString());
-        console.log("\tFields:");
-        for (var i in fields) {
-            // console.log("\t\t" + fields[i].toString());
-            var className = obj_class.toString().trim().split(" ")[1];
-            // console.log("className is => ",className);
-            var fieldName = fields[i].toString().split(className.concat(".")).pop();
-            console.log(fieldName + " => ", obj[fieldName].value);
-        }
-        // console.log("\tMethods:");
-        // for (var i in methods)
-        //     console.log("\t\t" + methods[i].toString());
-    })
+function logEnd() {
+    console.log("<=".repeat(50) + '\n');
 }
 
 
@@ -57,19 +35,15 @@ function printStackSimple() {
     console.log(Java.use("android.util.Log").getStackTraceString(Java.use("java.lang.Exception").$new()))
 }
 
-//so层打印调用栈
+//so层打印调用栈(在Interceptor.attach的hook中执行)
 console.log('RegisterNatives called from:\n' + Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress).join('\n') + '\n');
 
 
 /* 【***】 打印Java层内建数据类型
 *
+*
 * */
 
-//打印java byte[]数据(以16进制输出)
-function printByteHex() {
-    var ByteString = Java.use("com.android.okhttp.okio.ByteString");
-    console.log('contents: => ', ByteString.of(bytearray1).hex())
-}
 
 //打印hashMap
 function printHashMap(param) {
@@ -100,6 +74,21 @@ function printArrayList(param) {
     console.log("<<<=========================\n");
 }
 
+
+//将java的数组转换成js的数组
+function byte_to_ArrayBuffer(bytes) {
+    var size = bytes.length;
+    var tmparray = [];
+    for (var i = 0; i < size; i++) {
+        var val = bytes[i];
+        if (val < 0) {
+            val += 256;
+        }
+        tmparray[i] = val
+    }
+    return tmparray;
+}
+
 //java byte[]以hexdump格式输出。 即：将java byte[] 转换成c++的指针类型。并且hexdump打印结果
 function print_bytes(bytes, size) {
     var buf = Memory.alloc(bytes.length);
@@ -107,6 +96,21 @@ function print_bytes(bytes, size) {
     console.log(hexdump(buf, {offset: 0, length: size, header: false, ansi: true}));
 }
 
+
+//java byte[]以hexdump格式输出。 即：将java byte[] 转换成c++的指针类型。并且hexdump打印结果
+function jhexdump(array) {
+    var ptr = Memory.alloc(array.length); //API手动开辟的内存区域
+    for (var i = 0; i < array.length; ++i) {
+        Memory.writeS8(ptr.add(i), array[i]);
+    }
+    console.log(hexdump(ptr, {offset: 0, length: array.length, header: false, ansi: false}));
+}
+
+//打印java byte[]数据(以16进制输出)
+function printByteHex(bytearray1) {
+    var ByteString = Java.use("com.android.okhttp.okio.ByteString");
+    console.log('contents: => ', ByteString.of(bytearray1).hex())
+}
 
 /* 【***】 Java => JS，将Java数据类型转成js数据类型
 *
@@ -141,7 +145,7 @@ function StringToArray(str) {
     return bytes;
 }
 
-//将java的数组转换成js的数组
+//将java的byte[]数组转换成js的数组
 function bytesToArray(bytes) {
     var size = bytes.length;
     var tmparray = [];

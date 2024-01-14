@@ -357,6 +357,8 @@ function hook_jni_ssl_enc() {
 
 
 function main() {
+    hook_strstr();
+
     /* hook到内容后，就可以在java层hook函数中去打印调用栈 */
 
     //TCP\HTTP\UDP java层hook
@@ -371,13 +373,13 @@ function main() {
     //hook_ssl2_java();
 
     /* SSL Native层hook */
-    hook_jni_ssl();  //明文hook
+    //hook_jni_ssl();  //明文hook
     //hook_jni_ssl_enc(); //密文hook，针对于自编译SSL_Write，但还是用libc.so库的情况
 
     //getFullName("SSLOutputStream");
 }
 
-//setImmediate(main);
+setImmediate(main);
 
 
 //TODO 以下是检测相关
@@ -644,6 +646,7 @@ function switchLoaderHook(targetClsName) {
 }
 
 
+/*
 //TODO 以下是淘宝专用hook
 
 //淘宝专用线程进程id检测  -> 自编译frida不必管它
@@ -758,4 +761,5 @@ function hook_tb() {
 }
 
 //setImmediate(hook_tb)
+*/
 
