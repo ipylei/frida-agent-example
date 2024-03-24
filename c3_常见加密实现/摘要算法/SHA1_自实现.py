@@ -29,14 +29,14 @@ def sha1Function(message):
     temp = messageLength
     messageLength += '1'
 
-    while (len(messageLength) % 512 != 448): # 填充明文
+    while (len(messageLength) % 512 != 448):  # 填充明文
         messageLength += '0'
 
     messageLength += '{0:064b}'.format(len(temp))
     chunk = chunks(messageLength, 512)
 
     for eachChunk in chunk:
-        words = chunks(eachChunk, 32)
+        words = chunks(eachChunk, 32)  # 32bit=4字节
         w = [0] * 80
         # 前16块 M1~M16
         for n in range(0, 16):

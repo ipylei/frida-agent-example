@@ -495,8 +495,10 @@ function hook_pthread() {
     var pthread_create_addr = Module.findExportByName(null, 'pthread_create');
     console.log("pthread_create_addr,", pthread_create_addr);
 
+    //保留原函数？
     var pthread_create = new NativeFunction(pthread_create_addr, "int", ["pointer", "pointer", "pointer", "pointer"]);
 
+    //替换新函数
     Interceptor.replace(pthread_create_addr, new NativeCallback(function (parg0, parg1, parg2, parg3) {
         var so_name = Process.findModuleByAddress(parg2).name;
         var so_path = Process.findModuleByAddress(parg2).path;

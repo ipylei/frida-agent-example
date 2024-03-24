@@ -247,7 +247,7 @@ function call_target_func() {
 
 
 //3.检测是否有初始化函数(spawn)
-// 在dlopen加载目标so时, hook上JNI_OnLoad的onLeave处进行验证, 若报错或返回结果不对则表明有初始化函数；否则，则大概率无初始化函数(有例外:如京东)
+// 在dlopen加载目标so时, hook上JNI_OnLoad的onLeave处【进行调用并验证】, 若报错或返回结果不对则表明有初始化函数；否则，则大概率无初始化函数(有例外:如京东)
 function check_init_exist() {
     var android_dlopen_ext = Module.findExportByName(null, "android_dlopen_ext");
     if (android_dlopen_ext != null) {
@@ -285,7 +285,7 @@ function check_init_exist() {
 //setImmediate(check_init_exist)
 
 //4.定位初始化函数(spawn)
-// 在dlopen加载目标so时, hook上JNI_OnLoad的onLeave处hook目标类所有方法，并在被hook的方法中前/后调用目标方法，看从哪里开始不报错
+// 在dlopen加载目标so时, hook上JNI_OnLoad的onLeave处【hook目标类所有方法】，并在被hook的方法中【前/后】调用目标方法，看从哪里开始不报错或结果正常
 function find_init_func() {
     var android_dlopen_ext = Module.findExportByName(null, "android_dlopen_ext");
     if (android_dlopen_ext != null) {
@@ -325,6 +325,7 @@ function hook_target_class() {
         hookClass('com.jd.sec.utils.LoadDoor');
     })
 }
+
 setImmediate(hook_target_class)
 
 /*
@@ -332,7 +333,7 @@ setImmediate(hook_target_class)
 * 找到初始化函数的流程：
 
 方法一：spawn hook 整个类，看在目标方法之前调用了哪些函数，观察执行流，然后一个个排查？
-方法二：spawn hook So中所有动静态Native函数，观察执行流，然后一个个排查？
+方法二：spawn hook 目标.so文件中的所有符号函数，观察执行流，然后一个个排查？
 *
 方法三：
     1.Hook目标函数，得到参数和返回值

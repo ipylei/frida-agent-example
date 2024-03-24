@@ -63,8 +63,8 @@ function printHashMap(param) {
 //打印ArrayList
 function printArrayList(param) {
     console.log(">>>==========================");
-    var ArrayList = Java.use("java.util.ArrayList");
-    var newretObj = Java.cast(param, ArrayList); //向下转型(将Map转为HashMap)
+    var ArrayList = Java.use("java.util.List");
+    var newretObj = Java.cast(param, ArrayList);
     var iterator = newretObj.iterator();
     while (iterator.hasNext()) {
         var item = iterator.next();

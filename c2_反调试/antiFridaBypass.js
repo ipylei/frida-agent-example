@@ -27,7 +27,12 @@ function hook_strstr() {
                 str2.indexOf("gmain") !== -1 ||
                 str2.indexOf("linjector") !== -1
             ) {
-                console.log("str1:%s - str2:%s\n", str1, str2);
+                //console.log("str1:%s - str2:%s\n", str1, str2);
+                console.log("----------------------------");
+                console.log("str1 ==> ", str1);
+                console.log("str2 ==> ", str2);
+                console.log("----------------------------\n");
+
                 this.hook = true;
             }
         },
@@ -57,6 +62,7 @@ function hook_pthread() {
         console.log(`hooked -----> so_name:${so_name},  offset:${offset},  path:${so_path},  parg2:${parg2}`);
 
         var PC = 0;
+        /*
         // 注意一：这里根据实际情况更改
         if (false
             //(so_name.indexOf("libJDMobileSec.so") > -1)
@@ -77,11 +83,26 @@ function hook_pthread() {
             else {
                 PC = pthread_create(parg0, parg1, parg2, parg3);
             }
-
-
         } else {
             PC = pthread_create(parg0, parg1, parg2, parg3);
         }
+        */
+
+        let enable = true;
+        var PC = 0;
+        // 注意一：这里根据实际情况更改
+        if (so_name.indexOf("libexec.so") > -1) {
+            if (offset == 204560) {
+                enable = false;
+                console.log(`√√√ anti bypass ${so_name}=>${offset}`);
+            }
+
+        }
+        if (enable) {
+            PC = pthread_create(parg0, parg1, parg2, parg3);
+        }
+
+
         return PC;
     }, "int", ["pointer", "pointer", "pointer", "pointer"]))
 
