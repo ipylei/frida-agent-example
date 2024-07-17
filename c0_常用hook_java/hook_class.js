@@ -195,7 +195,8 @@ function hookClassWithLoader(clsName) {
 
             //方法二：先findClass, 若不报错才再切换loader, 然后hook
             try {
-                if (loader.findClass(clsName)) {
+                //if (loader.findClass(clsName)) {
+                if (loader.loadClass(clsName)) {
                     console.log(`classloader findClass success, current loader: ${loader}`);
 
                     //切换classLoader

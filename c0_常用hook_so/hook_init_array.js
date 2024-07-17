@@ -45,10 +45,11 @@ function hook_constructor() {
                 this.tag = ptr(args[1]).readCString()
                 this.fmt = ptr(args[2]).readCString()
                 if (this.fmt.indexOf("c-tor") >= 0 && this.fmt.indexOf('Done') < 0) {
-                    this.function_type = ptr(args[3]).readCString(), // func_type
-                        this.so_path = ptr(args[5]).readCString();
+                    this.function_type = ptr(args[3]).readCString(); // func_type
+                    this.so_path = ptr(args[5]).readCString();
 
-                    var strs = new Array(); //定义一数组
+                    //var strs = new Array(); //定义一数组
+                    var strs //定义一数组
                     strs = this.so_path.split("/"); //字符分割
                     this.so_name = strs.pop();
                     this.func_offset = ptr(args[4]).sub(Module.findBaseAddress(this.so_name))

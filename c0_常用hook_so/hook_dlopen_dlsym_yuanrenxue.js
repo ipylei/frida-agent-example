@@ -48,20 +48,12 @@ function find_function() {
                 },
 
                 onLeave: function (retval) {
-                    /*retval：
-                        当为dlopen加载模块时，不知道...
-                        当为dlsym加载某些函数时，会返回其模块名(so文件名)
-                    */
-                    //hook dlsym会执行这个
                     if (Process.findModuleByAddress(retval)) {
                         console.log("==> after hook dlsym : ", Process.findModuleByAddress(retval).name, "-->", this.func_name);
                     }
-                    //hook dlopen会执行这个， this.func_name->undefined
                     else {
                         console.log("===> after hook dlopen : ", this.path, "-->", this.func_name);
                     }
-
-
                 }
             });
         }

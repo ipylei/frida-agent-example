@@ -32,7 +32,7 @@ function hook_RegisterNatives(addrRegisterNatives) {
                     let name_ptr = Memory.readPointer(methods_ptr.add(i * Process.pointerSize * 3));
                     //java层方法签名
                     let sig_ptr = Memory.readPointer(methods_ptr.add(i * Process.pointerSize * 3 + Process.pointerSize));
-                    //JNI层方法名
+                    //JNI层方法名(Native方法)
                     let fnPtr_ptr = Memory.readPointer(methods_ptr.add(i * Process.pointerSize * 3 + Process.pointerSize * 2));
 
                     let name = Memory.readCString(name_ptr);

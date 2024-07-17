@@ -25,6 +25,7 @@ function find_function() {
             let exports = module.enumerateExports();
             for (let exp of exports) {
                 let exp_name = exp.name;
+
                 //TODO 1.找到目标函数名
                 if (exp_name.indexOf(func_name) > -1) {
                     console.log("\n===> 找到目标函数", module_name, exp_name);
@@ -54,7 +55,7 @@ function find_function() {
                             /*
                                TODO 注意：
                                 dlopen时，此时还不能hook app自身的so模块中的函数，要等dlopen后才能hook！(即在onLeave里面可以hook)
-                                dlsym时，可以hook某些函数，比如:JNI_OnLoad，因为已经存在了，dlsym是去执行该函数。
+                                dlsym时，可以hook某些函数，比如:JNI_OnLoad，因为已经存在了，dlsym是去寻找该函数。
                            */
 
                             /* dlopen hook测试，此时frida是找不到的，当然也就不能hook，要在onLeave里面才能hook
@@ -81,22 +82,15 @@ function find_function() {
                         },
 
                         onLeave: function (retval) {
-                            /*
-                              dlopen后，就可以找到this.path_file对应的模块，然后hook模块中的函数(无论是静态绑定、动态绑定)
-                              dlsym后，则返回的就是so文件地址
-                              */
-
-                            //hook dlsym的情况
                             if (Process.findModuleByAddress(retval)) {
                                 let m_module = Process.findModuleByAddress(retval);
                                 let m_module_name = m_module.name;
-                                console.log(`\t==>1被hook的函数:${exp_name}, dlsym-参数:${this.func_name}, 对应的模块:${m_module_name}`)
+                                console.log(`\t==>1被hook的函数:${exp_name}, dlsym->:${this.func_name}, 对应的模块:${m_module_name}`)
                             }
-                            //hook dlopen，且加载的是so文件的情况
                             else if (this.path_file && Process.findModuleByName(this.path_file)) {
                                 let path_module = Process.findModuleByName(this.path_file);
                                 let path_module_name = path_module.name;
-                                console.log(`\t==>2被hook的函数:${exp_name}, dlopen-参数:${this.path} ---> ${this.path_file}, 对应的模块:${path_module_name}`);
+                                console.log(`\t==>2被hook的函数:${exp_name}, dlopen->:${this.path}, 对应的模块:${path_module_name}, other->${this.path_file}`);
 
                                 /*
                                 //获取所有导出函数，遍历并获取其地址，就可以在dlopen打开后立马hook，前面frida找不到的情况这里就可以解决了
@@ -113,7 +107,7 @@ function find_function() {
                             }
                             //hook dlopen，且加载的不是so文件的情况
                             else {
-                                console.log(`\t==>3被hook的函数:${exp_name}, 参数_path:${this.path}, 参数_func:${this.func_name}, 返回值:${retval}`);
+                                console.log(`\t==>3被hook的函数:${exp_name}, dlopen->:${this.path}, 返回值:${retval}`);
                             }
                         }
                     })

@@ -42,26 +42,26 @@ if __name__ == '__main__':
     print(a.encrypt('1'))
     print(a.decrypt(a.encrypt('1')))
 
-    ctl = "index"
-    act = "index"
-    signqt = md5(("550904&*5978846()" + ctl + "+_" + act + "@!@###@").encode('utf8')).hexdigest()
-    timeqt = str(round(time.time() * 1000))
-    headers = {"X-JSL-API-AUTH": "sha1|1611928510|693SMeR0H|8fe0b019e47e9d09be043ce85f0e7cf0582b50f2"}
-    body = {
-        "screen_width": "1440",
-        "screen_height": "2392",
-        "sdk_type": "android",
-        "sdk_version_name": "1.3.0",
-        "sdk_version": "2020031801",
-        "ctl": ctl,
-        "act": act,
-        "signqt": signqt,
-        "timeqt": timeqt
-    }
-
-    requestDATA = a.encrypt(str(body))
-    url = "http://hhy2.hhyssing.com:46451/mapi/index.php?requestData=" + requestDATA + "i_type=1&ctl=" + ctl + "&act" + act;
-    rsp = requests.post(url, headers=headers)
-    result = json.loads(rsp.text).get("output")
-    d = AESECB("7489148794156147")
-    print(d.decrypt(result))
+    # ctl = "index"
+    # act = "index"
+    # signqt = md5(("550904&*5978846()" + ctl + "+_" + act + "@!@###@").encode('utf8')).hexdigest()
+    # timeqt = str(round(time.time() * 1000))
+    # headers = {"X-JSL-API-AUTH": "sha1|1611928510|693SMeR0H|8fe0b019e47e9d09be043ce85f0e7cf0582b50f2"}
+    # body = {
+    #     "screen_width": "1440",
+    #     "screen_height": "2392",
+    #     "sdk_type": "android",
+    #     "sdk_version_name": "1.3.0",
+    #     "sdk_version": "2020031801",
+    #     "ctl": ctl,
+    #     "act": act,
+    #     "signqt": signqt,
+    #     "timeqt": timeqt
+    # }
+    #
+    # requestDATA = a.encrypt(str(body))
+    # url = "http://hhy2.hhyssing.com:46451/mapi/index.php?requestData=" + requestDATA + "i_type=1&ctl=" + ctl + "&act" + act;
+    # rsp = requests.post(url, headers=headers)
+    # result = json.loads(rsp.text).get("output")
+    # d = AESECB("7489148794156147")
+    # print(d.decrypt(result))
