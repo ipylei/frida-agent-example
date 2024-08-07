@@ -15,8 +15,28 @@ var ByPassTracerPid = function () {
 // setImmediate(ByPassTracerPid);
 
 (function () {
-    let Color = { RESET: "\x1b[39;49;00m", Black: "0;01", Blue: "4;01", Cyan: "6;01", Gray: "7;11", "Green": "2;01", Purple: "5;01", Red: "1;01", Yellow: "3;01" };
-    let LightColor = { RESET: "\x1b[39;49;00m", Black: "0;11", Blue: "4;11", Cyan: "6;11", Gray: "7;01", "Green": "2;11", Purple: "5;11", Red: "1;11", Yellow: "3;11" };
+    let Color = {
+        RESET: "\x1b[39;49;00m",
+        Black: "0;01",
+        Blue: "4;01",
+        Cyan: "6;01",
+        Gray: "7;11",
+        "Green": "2;01",
+        Purple: "5;01",
+        Red: "1;01",
+        Yellow: "3;01"
+    };
+    let LightColor = {
+        RESET: "\x1b[39;49;00m",
+        Black: "0;11",
+        Blue: "4;11",
+        Cyan: "6;11",
+        Gray: "7;01",
+        "Green": "2;11",
+        Purple: "5;11",
+        Red: "1;11",
+        Yellow: "3;11"
+    };
     var colorPrefix = '\x1b[3', colorSuffix = 'm'
     for (let c in Color) {
         if (c == "RESET") continue;
@@ -28,6 +48,8 @@ var ByPassTracerPid = function () {
         }
     }
 })();
+
+// tool function ------------------------------------------------------------------------------------
 function uniqBy(array, key) {
     var seen = {};
     return array.filter(function (item) {
@@ -35,6 +57,7 @@ function uniqBy(array, key) {
         return seen.hasOwnProperty(k) ? false : (seen[k] = true);
     });
 }
+
 function hasOwnProperty(obj, name) {
     try {
         return obj.hasOwnProperty(name) || name in obj;
@@ -57,6 +80,29 @@ function getHandle(object) {
     return null;
 }
 
+function print_arguments(args) {
+    /*
+    Frida's Interceptor has no information about the number of arguments, because there is no such
+    information available at the ABI level (and we don't rely on debug symbols).
+
+    I have implemented this function in order to try to determine how many arguments a method is using.
+    It stops when:
+        - The object is not nil
+        - The argument is not the same as the one before
+     */
+    var n = 100;
+    var last_arg = '';
+    for (var i = 2; i < n; ++i) {
+        var arg = (new ObjC.Object(args[i])).toString();
+        if (arg == 'nil' || arg == last_arg) {
+            break;
+        }
+        last_arg = arg;
+        return ' args' + (i - 2) + ': ' + (new ObjC.Object(args[i])).toString()
+    }
+}
+
+
 //查看域值(字段名？)
 function inspectObject(obj, input) {
     var isInstance = false;
@@ -76,19 +122,26 @@ function inspectObject(obj, input) {
             // output = output.concat("\t\t static static static " + fields[i].toString());
             var className = obj_class.toString().trim().split(" ")[1];
             // console.Red("className is => ",className);
+
+            //取得field name
             var fieldName = fields[i].toString().split(className.concat(".")).pop();
+            //取得field type
             var fieldType = fields[i].toString().split(" ").slice(-2)[0];
+            //取得field value，静态Field传入类、实例也没关系
             var fieldValue = undefined;
-            if (!(obj[fieldName] === undefined))
+            if (!(obj[fieldName] === undefined)) {
                 fieldValue = obj[fieldName].value;
+            }
             input = input.concat(fieldType + " \t" + fieldName + " => ", fieldValue + " => ", JSON.stringify(fieldValue));
             input = input.concat("\r\n")
         }
     }
     return input;
 }
+// tool function ------------------------------------------------------------------------------------
 
 // trace单个类的所有静态和实例方法包括构造方法 trace a specific Java Method
+// 即hook方法，然后打印参数、返回值
 function traceMethod(targetClassMethod) {
     var delim = targetClassMethod.lastIndexOf(".");
     if (delim === -1) return;
@@ -110,15 +163,19 @@ function traceMethod(targetClassMethod) {
             }
 
             //域值(字段名？)
-            if (!isLite) { output = inspectObject(this, output); }
+            if (!isLite) {
+                output = inspectObject(this, output);
+            }
 
             //进入函数
             output = output.concat("\n*** entered " + targetClassMethod);
             output = output.concat("\r\n")
             // if (arguments.length) console.Black();
 
-            //参数
+            //调用原方法
             var retval = this[targetMethod].apply(this, arguments);
+
+            //打印参数
             if (!isLite) {
                 for (var j = 0; j < arguments.length; j++) {
                     output = output.concat("arg[" + j + "]: " + arguments[j] + " => " + JSON.stringify(arguments[j]));
@@ -130,6 +187,7 @@ function traceMethod(targetClassMethod) {
                 output = output.concat("\nretval: " + retval + " => " + JSON.stringify(retval));
             }
             // inspectObject(this)
+
             //离开函数
             output = output.concat("\n*** exiting " + targetClassMethod);
             //最终输出
@@ -165,7 +223,6 @@ function traceMethod(targetClassMethod) {
     }
 }
 
-
 //模式：A
 function traceClass(targetClass) {
     if (Java.available) {
@@ -178,6 +235,7 @@ function traceClass(targetClass) {
         console.log("please connect to either iOS or Android device ...")
     }
 }
+
 
 function JavaTraceClass(targetClass) {
     //Java.use是新建一个对象哈，大家还记得么？
@@ -204,6 +262,7 @@ function JavaTraceClass(targetClass) {
             output = output.concat("Tracing ", constructor.toString())
             output = output.concat("\r\n")
         })
+        //加上构造函数的hook
         Targets = Targets.concat("$init")
     }
     //对数组中所有的方法进行hook，
@@ -215,28 +274,6 @@ function JavaTraceClass(targetClass) {
         output = output.concat("+");
     }
     console.Green(output);
-}
-
-function print_arguments(args) {
-    /*
-    Frida's Interceptor has no information about the number of arguments, because there is no such 
-    information available at the ABI level (and we don't rely on debug symbols).
-    
-    I have implemented this function in order to try to determine how many arguments a method is using.
-    It stops when:
-        - The object is not nil
-        - The argument is not the same as the one before    
-     */
-    var n = 100;
-    var last_arg = '';
-    for (var i = 2; i < n; ++i) {
-        var arg = (new ObjC.Object(args[i])).toString();
-        if (arg == 'nil' || arg == last_arg) {
-            break;
-        }
-        last_arg = arg;
-        return ' args' + (i-2) + ': ' + (new ObjC.Object(args[i])).toString()
-    }
 }
 
 function IosTraceClass(targetClass) {
@@ -303,8 +340,7 @@ function javahook(white, black, target = null) {
                         Java.classFactory.loader = loader;
                         console.Red("Switch Classloader Successfully ! ")
                     }
-                }
-                catch (error) {
+                } catch (error) {
                     console.Red(" continuing :" + error)
                 }
             },
@@ -411,34 +447,35 @@ function hookALLappClasses(loader) {
         return
     }
     var class_BaseDexClassLoader = Java.use("dalvik.system.BaseDexClassLoader");
+    var class_DexPathList = Java.use("dalvik.system.DexPathList");
+    var class_DexPathList_Element = Java.use("dalvik.system.DexPathList$Element");
+    var class_DexFile = Java.use("dalvik.system.DexFile");
+
     var pathcl = Java.cast(loader, class_BaseDexClassLoader);
     console.log("classloader pathList", pathcl.pathList.value);
-    var class_DexPathList = Java.use("dalvik.system.DexPathList");
+
     var dexPathList = Java.cast(pathcl.pathList.value, class_DexPathList);
     console.log("classloader dexElements:", dexPathList.dexElements.value.length);
-    var class_DexFile = Java.use("dalvik.system.DexFile");
-    var class_DexPathList_Element = Java.use("dalvik.system.DexPathList$Element");
+
     for (var i = 0; i < dexPathList.dexElements.value.length; i++) {
         var dexPathList_Element = Java.cast(dexPathList.dexElements.value[i], class_DexPathList_Element);
         // console.log("classloader .dexFile:",dexPathList_Element.dexFile.value);
         //可能为空 为空跳过
-        if (dexPathList_Element.dexFile.value) {            
+        if (dexPathList_Element.dexFile.value) {
             var dexFile = Java.cast(dexPathList_Element.dexFile.value, class_DexFile);
             var mcookie = dexFile.mCookie.value;
             // console.log(".mCookie",dexFile.mCookie.value);
             if (dexFile.mInternalCookie.value) {
                 mcookie = dexFile.mInternalCookie.value;
             }
-            var classNameArr =
-                dexPathList_Element.dexFile.value.getClassNameList(mcookie);
+            var classNameArr = dexPathList_Element.dexFile.value.getClassNameList(mcookie);
             console.log("dexFile.getClassNameList.length:", classNameArr.length);
             console.log("r0ysue-Enumerate ClassName Start");
             for (var i = 0; i < classNameArr.length; i++) {
                 if (classNameArr[i].indexOf("android.") < 0 &&
                     classNameArr[i].indexOf("androidx.") < 0 &&
                     classNameArr[i].indexOf("java.") < 0 &&
-                    classNameArr[i].indexOf("javax.") < 0
-                ) {
+                    classNameArr[i].indexOf("javax.") < 0) {
                     console.log("r0ysue  ", classNameArr[i]);
                     traceClass(classNameArr[i])
                 }
@@ -461,8 +498,7 @@ function JavahookALL() {
                     console.Red("Switch Classloader Successfully ! ")
                     hookALLappClasses(loader)
                 }
-            }
-            catch (error) {
+            } catch (error) {
                 console.Red(" continuing :" + error)
             }
         },
@@ -482,12 +518,12 @@ function main() {
     //以下三种模式，取消注释某一行以开启
     */
 
-    //A. 简易trace单个lei
+    //A. 简易trace单个类
     // traceClass("ViewController")
 
     //B. 黑白名单trace多个函数，第一个参数是白名单(包含关键字)，第二个参数是黑名单(不包含的关键字)
     // hook("com.uzmap.pkg.EntranceActivity", "$");
-    hook("ViewController","UI")
+    hook("ViewController", "UI")
 
     //C. 报某个类找不到时，将某个类名填写到第三个参数，比如找不到com.roysue.check类。（前两个参数依旧是黑白名单）
     // hook("com.roysue.check"," ","com.roysue.check");    
@@ -495,6 +531,7 @@ function main() {
     //D. 新增hookALL() 打开这个模式的情况下，会hook属于app自己的所有业务类，小型app可用 ，中大型app几乎会崩溃，经不起
     // hookALL()
 }
+
 /*
 //setImmediate是立即执行函数，setTimeout是等待毫秒后延迟执行函数
 //二者在attach模式下没有区别

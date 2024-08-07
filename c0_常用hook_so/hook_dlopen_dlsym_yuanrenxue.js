@@ -48,10 +48,10 @@ function find_function() {
                 },
 
                 onLeave: function (retval) {
+                    //dlopen返回一个handle，dlsym返回一个符号地址
                     if (Process.findModuleByAddress(retval)) {
-                        console.log("==> after hook dlsym : ", Process.findModuleByAddress(retval).name, "-->", this.func_name);
-                    }
-                    else {
+                        console.log("==> after hook dlsym : ", Process.findModuleByAddress(retval).name, "-->", this.path, "-->", this.func_name);
+                    } else {
                         console.log("===> after hook dlopen : ", this.path, "-->", this.func_name);
                     }
                 }

@@ -1,3 +1,4 @@
+//遍历内存中所有的类，筛选出类：该类的父类是目标类
 function search_sub_class(target_class, package_name = "") {
     var all_target_class = new Set();
     Java.enumerateLoadedClasses({
@@ -49,6 +50,7 @@ function search_sub_class(target_class, package_name = "") {
 
 }
 
+//遍历内存中所有的类，过滤出实现目标接口的类
 function search_implementation_class(target_interface, package_name = "") {
     var all_target_class = new Set();
     Java.enumerateLoadedClasses({

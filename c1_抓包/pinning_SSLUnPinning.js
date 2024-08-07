@@ -1,9 +1,10 @@
-var level = 1;
-//1:console.log()
-//2:console.log()
-//3:console.warn()
-//4:console.error()
+/* 对常见框架的证书验证逻辑进行hook
+*
+*
+*
+* */
 
+var level = 1;
 
 function printStack(tag = "") {
     let threadClz = Java.use("java.lang.Thread");

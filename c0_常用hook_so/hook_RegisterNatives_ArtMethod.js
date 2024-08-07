@@ -22,15 +22,15 @@ function attach(addr) {
                 ArtMethod_PrettyMethod(string, this.arg0, 1)
                 console.log('method_name =>', readStdString(string), ',offset=>', ptr(retval).sub(module.base), ',module_name=>', module.name)
 
-               /* if (readStdString(string).indexOf("method01") >= 0) {
-                    Interceptor.attach(ptr(retval), {
-                        onEnter: function (args) {
-                            console.log("entering method01", Java.vm.getEnv().getStringUtfChars(args[2], null).readCString())
-                        }, onLeave: function () {
-                            console.log("leaving method01");
-                        }
-                    })
-                }*/
+                /* if (readStdString(string).indexOf("method01") >= 0) {
+                     Interceptor.attach(ptr(retval), {
+                         onEnter: function (args) {
+                             console.log("entering method01", Java.vm.getEnv().getStringUtfChars(args[2], null).readCString())
+                         }, onLeave: function () {
+                             console.log("leaving method01");
+                         }
+                     })
+                 }*/
 
             }
         }
@@ -43,6 +43,8 @@ function hook_RegisterNative() {
     for (var i = 0; i < symbols.length; i++) {
 
         //找到ArtMethod::PrettyMethod
+        //static std::string PrettyMethod(ArtMethod* m, bool with_signature = true) => _ZN3art9ArtMethod12PrettyMethodEPS0_b
+        //art::ArtMethod::PrettyMethod(bool) => ZN3art9ArtMethod12PrettyMethodEb
         if (symbols[i].name.indexOf('PrettyMethod') > -1 && symbols[i].name.indexOf('ArtMethod') > -1 && symbols[i].name.indexOf("Eb") >= 0) {
             ArtMethod_PrettyMethod = new NativeFunction(symbols[i].address, "void", ['pointer', "pointer", "bool"])
         }

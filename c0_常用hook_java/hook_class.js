@@ -141,7 +141,8 @@ function hookClass(clsName) {
         //利用反射，得到类下面的所有方法
         let methodsArray = [];
         let methods = targetClass.class.getDeclaredMethods();
-        //构造函数有问题，因为获取到的是：类名(参数1, 参数2 ...)，然而hook应该写成：.$init
+
+        //构造函数有问题，因为getDeclaredConstructors()获取到的是：类名(参数1, 参数2 ...)，然而hook应该写成：.$init
         //let constructors = targetClass.class.getDeclaredConstructors();
         //methods = methods.concat(constructors);
         let targetMethods = [];

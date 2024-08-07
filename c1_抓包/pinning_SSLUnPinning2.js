@@ -188,16 +188,15 @@ function hook2() {
 }
 
 /*验证：
-    1.证书链验证：实现接口：java.security.cert.X509Certificate
+    1.主机验证：实现接口：javax.net.ssl.HostnameVerifier
+            比如：okhttp3.internal.tls.OkHostnameVerifier
+
+    2.证书链验证：实现接口java.security.cert.X509Certificate
             比如：com.android.org.conscrypt.TrustManagerImpl.checkServerTrusted
             比如：com.android.org.conscrypt.TrustManagerImpl.verifyChain
 
-    2.主机验证：实现接口：javax.net.ssl.HostnameVerifier
-            比如：okhttp3.internal.tls.OkHostnameVerifier
-
     3.证书绑定：自定义证书绑定相关类
             比如：okhttp3.CertificatePinner.verify
-
 
     4.证书类：java.security.cert.Certificate
 */

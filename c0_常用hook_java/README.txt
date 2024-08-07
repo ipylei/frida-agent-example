@@ -14,8 +14,8 @@ hook_non_ascii_func.js            //hook不可打印的方法
 
 hook_okhttp3_chains.js            //hook okhttp3打印出拦截器
 
-print_msg.js
-print_打印行号.js
+utils_print_msg.js
+utils_print_打印行号.js
 bypass_绕过root检测.js
 
 tracer_java.js                          //常用工具

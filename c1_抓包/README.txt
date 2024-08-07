@@ -54,10 +54,10 @@ hook原生系统底层：TODO (不必配合抓包工具，单纯hook查看内容
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 拓展了解[防御篇]：小菜花：https://bbs.pediy.com/user-home-844301.htm
-    底层直接调用sendto/recvfrom函数             (all_in_one.js能hook到)
-        使用syscall + sendto/recvfrom调用号    (hook syscall)
-            自实现内联汇编sendto/recvfrom       (内存扫描+inline hook)、(ptrace(seccomp过滤) + PTRACE_SYSCALL)
-            自实现内联汇编syscall + sendto/recvfrom调用号
+    底层直接调用库函数：sendto/recvfrom函数                                         (all_in_one.js能hook到)
+        使用库函数syscall + sendto/recvfrom调用号                                 (hook 库函数syscall)
+           自实现内联汇编sendto/recvfrom(即,使用汇编实现这2个库函数)                   (内存扫描+inline hook)、(ptrace[seccomp过滤] + PTRACE_SYSCALL)
+           自实现内联汇编syscall + sendto/recvfrom调用号(即,使用汇编实现库函数syscall)
 
 [-]
 [+]
@@ -65,25 +65,25 @@ hook原生系统底层：TODO (不必配合抓包工具，单纯hook查看内容
 【抓包阻碍大致解决流程】：
 vpn检测：hook_vpn.js
     c校验s：
-      pinning_DroidSSLUnpinning.js、pinning_multi_unpinning.js、pinning_just_trust_me_frida.js
+      github项目：pinning_DroidSSLUnpinning.js、pinning_multi_unpinning.js、pinning_just_trust_me_frida.js
       综合：pinning_SSLUnPinning.js
       暴力：pinning_SSLUnPinning2.js
-      通用：pinning_File.js [TODO] 证书直接硬编码在代码里面，pinnning_File.js也无办法
+      通用：pinning_hook_File.js
+
       (针对)：okhttp：pinning_hook_okhttp3.js(推荐度一般)
       (针对)：okhttp混淆：pinning_just_trust_me_okhttp_hook_finder.js、OkHttpLogger-Frida
       (备用)：单步调试frida：https://bbs.kanxue.com/thread-265160.htm
            cert_20201128capture.js【通过hook不让进程被kill从而过掉校验服务端证书，缺点:正常kill进程的逻辑也失效了。】
 
 
-
-        s校验c： [r0capture中keystore相关]：cert_saveClientCer.js、cert_saveClientCer2.js、cert_savePrivateKey.js
-                                  [其他]：cert_hook_android_Cert、cert_keystore_dump.js、cert_tracer_keystore.js
-            原生系统底层：lesson7_all_in_one.js
-                其他情况：( 针对于拓展了解[防御篇] )：
-                    hook syscall
-                    内存扫描+inline hook
-                    ptrace(seccomp过滤) + PTRACE_SYSCALL
-                    源码级内核模块开发
+    s校验c： [r0capture中keystore相关]：cert_saveClientCer.js、cert_saveClientCer2.js、cert_savePrivateKey.js
+                              [其他]：cert_hook_android_Cert、cert_keystore_dump.js、cert_tracer_keystore.js
+        原生系统底层：lesson7_all_in_one.js
+            其他情况：( 针对于拓展了解[防御篇] )：
+                hook syscall
+                内存扫描+inline hook
+                ptrace(seccomp过滤) + PTRACE_SYSCALL
+                源码级内核模块开发
 
 
 【抓包经验】：

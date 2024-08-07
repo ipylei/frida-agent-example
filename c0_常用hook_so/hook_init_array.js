@@ -27,16 +27,6 @@ function hook_constructor() {
 
         }
     }
-    /* 这里JNI_OnLoad函数还未加载
-    console.log("----------------------------------------------------------------------------");
-        let exp = Module.findExportByName("liblessontest.so", "JNI_OnLoad");
-        if (exp) {
-            console.log("√ 找到了JNI_OnLoad函数", exp);
-        } else {
-            console.log("× 没有找到JNI_OnLoad函数", exp);
-        }
-    */
-
 
     if (addr_async_safe_format_log) {
         Interceptor.attach(addr_async_safe_format_log, {

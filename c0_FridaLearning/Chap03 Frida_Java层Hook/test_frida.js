@@ -3,17 +3,16 @@ function hook() {
         let ParentClass = Java.use("com.example.c6l02requestdemo.ParentClass");
         let SubClass = Java.use("com.example.c6l02requestdemo.SubClass");
 
-        //1.子类继承父类的方法时，无论是hook父类还是子类的该方法都有效，同时hook时只有子类有效!
+        //1.子类继承父类的方法时(无论子类是否重写)，无论是hook父类还是子类的该方法都有效，同时hook时只有子类有效!
         //ParentClass["sayHi"].implementation = function (arg) {
         //    console.log("ParentClass", arg);
         //    return this.sayHi(arg);
         //}
 
-        /*
-        SubClass["sayHi"].implementation = function (arg) {
-            console.log("SubClass", arg);
+        SubClass["sayHi"].overload('java.lang.String').implementation = function (arg) {
+            console.log("SubClass xxxxxxxxxx", arg);
             return this.sayHi(arg);
-        }*/
+        }
 
         //2.hook一个类的所有方法
         /*
@@ -39,6 +38,9 @@ function hook() {
             }
         }
          */
+
+
+        /*
         console.log(SubClass);
 
         let a1 = SubClass.class;
@@ -69,16 +71,15 @@ function hook() {
                 console.log("a3==a4", a3 === a4);  //false
 
                 //TODO 所以frida还是有点不可信，这几个本来全为true的
-
             },
 
             onComplete: function () {
             }
-        })
+        })*/
 
 
     })
 }
 
-//setImmediate(hook)
+setImmediate(hook)
 
