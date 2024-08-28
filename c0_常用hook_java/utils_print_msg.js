@@ -107,3 +107,4 @@ console.Green("Green", "hello wolrd");
 console.Purple("Purple", "hello wolrd");
 console.Red("Red", "hello wolrd");
 console.Yellow("Yellow", "hello wolrd");
+console.LightYellow("Yellow", "hello wolrd");

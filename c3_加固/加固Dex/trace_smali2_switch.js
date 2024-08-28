@@ -13,7 +13,7 @@ function getArtMethodName(artMethodPtr) {
     stdString.writePointer(result[0]);
     stdString.add(1 * Process.pointerSize).writePointer(result[1]);
     stdString.add(2 * Process.pointerSize).writePointer(result[2]);
-    return  readStdString(stdString);
+    return readStdString(stdString);
 }
 
 function disassemble(addr, count) {
@@ -47,13 +47,14 @@ function hook_libart() {
     }
     PrettyMethodfunc = new NativeFunction(PrettyMethodaddr, ["pointer", "pointer", "pointer"], ["pointer", "int"]);
 
-    //打印下面4个解释器引擎入口函数，当前执行的Java方法(ArtMethod)名称
+    //打印下面4个解释器引擎入口函数，当前执行的Java方法(ArtMethod)名称   【注意：加上容易卡死】
     //当然直接Hook Execute更好，这样就只hook了一个地方
+    //JValue ExecuteSwitchImpl(self, code_item, shadow_frame, result_register, interpret_one_instruction);
     libart.enumerateSymbols().forEach(function (symbol) {
         if (symbol.name.indexOf("ExecuteSwitchImpl") != -1) {
             Interceptor.attach(symbol.address, {
                 onEnter: function (args) {
-                    let shadowFrame_ptr = args[3];
+                    let shadowFrame_ptr = args[3];  //下标为什么是3？因为JValue大于一个指针长度，所以函数最前面多了一个隐形的参数
                     let artMethodPtr = shadowFrame_ptr.add(Process.pointerSize).readPointer();
                     let funcName = getArtMethodName(artMethodPtr);
                     console.log("[" + Process.getCurrentThreadId() + "]ExecuteSwitchImpl", funcName);
@@ -67,7 +68,7 @@ function hook_libart() {
 
     //取smali指令的地方
     //var loadopcodeoffset = libart.base.add(0x2301AC + 1);
-    //console.log(hexdump(loadopcodeoffset.sub(1))); //sub回去再查看，是汇编指令
+    //console.log(hexdump(loadopcodeoffset.sub(1))); //sub回去再查看，内容是汇编指令
     //disassemble(loadopcodeoffset, 5);              //进行反汇编
     //Interceptor.attach(loadopcodeoffset, {});      //进行hook
 
@@ -78,7 +79,11 @@ function hook_libart() {
             onEnter: function (args) {
                 //打印寄存器
                 console.log("[" + Process.getCurrentThreadId() + "]", JSON.stringify(this.context));
-                //打印寄存器内容(ptr)指向的内存(smali指令码)。 这里是c++取出smali指令码的(偏移)地址存放到寄存器中(01:14:10)
+                //(01:12:15) r10是opcode，r11是opcode的所在地址(取出opCode赋值给r10)
+
+                // LDRH.W          R10, [R11]
+                // UXTB.W          R0, R10
+                // CMP             R0, #0xFD
                 console.log(hexdump(this.context.r11, {length: 16}));
             },
             onLeave: function (retval) {
@@ -91,7 +96,11 @@ function hook_libart() {
 }
 
 function main() {
-
+    hook_libart();
 }
 
 setImmediate(main)
+
+
+/* frida hook switch实现的解释器其取smali指令的地方，打印出opCode (参考Fart课时31)
+* */

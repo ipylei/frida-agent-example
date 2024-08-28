@@ -93,3 +93,7 @@ function main() {
 }
 
 setImmediate(main);
+
+
+/*hook了ArtMethod::RegisterNative 和 libc中的dlsym
+* */

@@ -139,13 +139,16 @@ def md5sum(msg):
         block = msg[i * 64:(i + 1) * 64]
         # 明文的处理，顺便调整了一下端序
         M = blockDivide(block, 16)
+
         # Rounds
-        # 新B = (A + F(B,C,D) +Mi +Ki) <<<s
-        # K0=SV[0]
-        a = FF(a, b, c, d, M[0], 7, SV[0])  # 新B
-        d = FF(d, a, b, c, M[1], 12, SV[1])  # 新A
-        c = FF(c, d, a, b, M[2], 17, SV[2])  # 新D
-        b = FF(b, c, d, a, M[3], 22, SV[3])  # 新C
+        # 新B = (A + F(B,C,D) +Mi +Ki) <<< s
+        # K0=SV[0], Ki=SV[i]
+
+        # Mi中的i = i
+        a = FF(a, b, c, d, M[0], 7, SV[0])
+        d = FF(d, a, b, c, M[1], 12, SV[1])
+        c = FF(c, d, a, b, M[2], 17, SV[2])
+        b = FF(b, c, d, a, M[3], 22, SV[3])
         a = FF(a, b, c, d, M[4], 7, SV[4])
         d = FF(d, a, b, c, M[5], 12, SV[5])
         c = FF(c, d, a, b, M[6], 17, SV[6])
@@ -159,6 +162,7 @@ def md5sum(msg):
         c = FF(c, d, a, b, M[14], 17, SV[14])
         b = FF(b, c, d, a, M[15], 22, SV[15])
 
+        # Mi中的i=(5*index + 1) % 16
         a = GG(a, b, c, d, M[1], 5, SV[16])
         d = GG(d, a, b, c, M[6], 9, SV[17])
         c = GG(c, d, a, b, M[11], 14, SV[18])
@@ -176,6 +180,7 @@ def md5sum(msg):
         c = GG(c, d, a, b, M[7], 14, SV[30])
         b = GG(b, c, d, a, M[12], 20, SV[31])
 
+        # Mi中的i = (3*index + 5) % 16
         a = HH(a, b, c, d, M[5], 4, SV[32])
         d = HH(d, a, b, c, M[8], 11, SV[33])
         c = HH(c, d, a, b, M[11], 16, SV[34])
@@ -193,6 +198,7 @@ def md5sum(msg):
         c = HH(c, d, a, b, M[15], 16, SV[46])
         b = HH(b, c, d, a, M[2], 23, SV[47])
 
+        # Mi中的i = (7*index) % 16;
         a = II(a, b, c, d, M[0], 6, SV[48])
         d = II(d, a, b, c, M[7], 10, SV[49])
         c = II(c, d, a, b, M[14], 15, SV[50])

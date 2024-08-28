@@ -334,7 +334,7 @@ setImmediate(hook_target_class)
 
 方法一：spawn hook 整个类，看在目标方法之前调用了哪些函数，观察执行流，然后一个个排查？
 方法二：spawn hook 目标.so文件中的所有符号函数，观察执行流，然后一个个排查？
-*
+
 方法三：
     1.Hook目标函数，得到参数和返回值
     2.frida attach, 然后[主动调用]目标函数，对比参数和返回值

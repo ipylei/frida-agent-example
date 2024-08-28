@@ -29,7 +29,9 @@ function hook_dlopen(soName = '') {
 
 function hook_JNI_OnLoad(){
     let module = Process.findModuleByName("libmsaoaidsec.so")
-    Interceptor.attach(module.base.add(0xC6DC + 1), {
+    let addr = module.base.add(0xC6DC + 1);
+    //var addr = Module.findExportByName("libmtguard.so", "JNI_OnLoad");
+    Interceptor.attach(addr, {
         onEnter(args){
             console.log("call JNI_OnLoad")
         }

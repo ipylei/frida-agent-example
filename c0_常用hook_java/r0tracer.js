@@ -107,13 +107,18 @@ function print_arguments(args) {
 function inspectObject(obj, input) {
     var isInstance = false;
     var obj_class = null;
+
+    //是一个frida包装对象
     if (getHandle(obj) === null) {
         obj_class = obj.class;
-    } else {
+    }
+    //不是一个frida包装对象，有$handle等属性，即在内存中的地址
+    else {
         var Class = Java.use("java.lang.Class");
         obj_class = Java.cast(obj.getClass(), Class);
         isInstance = true;
     }
+
     input = input.concat("Inspecting Fields: => ", isInstance, " => ", obj_class.toString());
     input = input.concat("\r\n")
     var fields = obj_class.getDeclaredFields();

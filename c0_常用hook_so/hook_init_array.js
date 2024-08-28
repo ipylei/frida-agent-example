@@ -22,9 +22,7 @@ function hook_constructor() {
             } else if (name.indexOf("async_safe_format_log") >= 0 && name.indexOf('va_list') < 0) {
                 // console.log("async_safe_format_log",JSON.stringify(symbols[i]));
                 addr_async_safe_format_log = symbols[i].address;
-
             }
-
         }
     }
 

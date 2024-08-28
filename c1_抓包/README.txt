@@ -6,38 +6,51 @@
 */
 
 
-vpn检测：
-    hook_vpn.js
+网络框架要存在协议模式切换的机制
+    iptables -A INPUT -s ***.**.***.181 -j DROP #屏蔽
+    iptables -D INPUT -s ***.**.***.181 -j DROP #解除屏蔽
 
 
-c校验s：
-    (*) pinning_DroidSSLUnpinning.js  # https://github.com/WooyunDota/DroidSSLUnpinning
-    (*) pinning_multi_unpinning.js
-    (*) pinning_just_trust_me_frida.js    【来自hooker项目】
-    (*) 修改HTTPS(find_url.js)
-            原理：frida hook将HTTPS修改为HTTP躲过证书验证，再使用charles建立映射规则将HTTP改回为https。
 
-    okhttp：
-        pinning_hook_okhttp3.js(推荐度一般) TODO (不必配合抓包工具，单纯hook查看内容，然后进行调用栈分析)
-    okhttp混淆：
-        pinning_just_trust_me_okhttp_hook_finder.js 【来自hooker项目】  (radar.dex)(找到混淆的类后，再使用pinning_hook_okhttp3.js)
-        OkHttpLogger-Frida (https://github.com/siyujie/OkHttpLogger-Frida)
+[-]
+[+]
+【抓包阻碍大致解决流程】：
+vpn检测：hook_vpn.js
+    c校验s：
+      github项目：
+            pinning_DroidSSLUnpinning.js  //https://github.com/WooyunDota/DroidSSLUnpinning
+            pinning_multi_unpinning.js
+            pinning_just_trust_me_frida.js 【来自hooker项目】
+      综合：pinning_SSLUnPinning.js
+      暴力：pinning_SSLUnPinning2.js
+      通用：pinning_hook_File.js
 
-    TODO 以上还不行的话就Hook File函数，因为客户端一定会加载证书，由此一定会定位到证书绑定的代码位置。
+      (针对)：okhttp：pinning_hook_okhttp3.js(推荐度一般)
+      (针对)：okhttp混淆：pinning_just_trust_me_okhttp_hook_finder.js 【来自hooker项目】  (radar.dex)(找到混淆的类后，再使用pinning_hook_okhttp3.js)
+                        OkHttpLogger-Frida
 
-
-s校验c：
-    (*) cert_tracer_keystore.js
-    (*) cert_keystore_dump.js    【来自hooker项目】
-    (*) r0capture中keystore相关  (https://github.com/r0ysue/r0capture)
-    (*) hook_android_Cert
-
-
-hook原生系统底层：TODO (不必配合抓包工具，单纯hook查看内容，然后进行调用栈分析)
-    all_in_one.js
+      (备用)：单步调试frida：https://bbs.kanxue.com/thread-265160.htm
+           cert_20201128capture.js【通过hook不让进程被kill从而过掉校验服务端证书，缺点:正常kill进程的逻辑也失效了。】
 
 
-其他情况：
+    s校验c： [r0capture中keystore相关]：cert_saveClientCer.js、cert_saveClientCer2.js、cert_tracer_keystore.js
+        原生系统底层：all_in_one.js
+            其他情况：( 针对于下面拓展了解[防御篇] )：
+            # ----------------------------------------------------------------------------------------------------------------------
+            拓展了解[防御篇]：小菜花：https://bbs.pediy.com/user-home-844301.htm
+                底层直接调用库函数：sendto/recvfrom/read/write函数                              (all_in_one.js能hook到[write、read等]，hook libc.so中的库函数)
+                    使用库函数syscall + sendto/recvfrom调用号                                 (hook库函数syscall)
+                       自实现内联汇编sendto/recvfrom(即,使用汇编实现这2个库函数)                   (内存扫描+inline hook)、 (ptrace[seccomp过滤] + PTRACE_SYSCALL)
+                       自实现内联汇编syscall + sendto/recvfrom调用号(即,使用汇编实现库函数syscall) (源码级内核模块开发)
+            # ----------------------------------------------------------------------------------------------------------------------
+           总结：
+               hook syscall                             【hook库函数syscall】
+               内存扫描+inline hook                       【hook_svc.js】
+               trace(seccomp过滤) + PTRACE_SYSCALL
+               源码级内核模块开发
+
+
+【其他情况】：
     (*)webview
         hook java层无效， hook tcp_udp有效
 
@@ -46,44 +59,6 @@ hook原生系统底层：TODO (不必配合抓包工具，单纯hook查看内容
         *)其他则：枚举类、枚举so符号、hook验证
 
 
-网络框架要存在协议模式切换的机制
-    iptables -A INPUT -s ***.**.***.181 -j DROP #屏蔽
-    iptables -D INPUT -s ***.**.***.181 -j DROP #解除屏蔽
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-拓展了解[防御篇]：小菜花：https://bbs.pediy.com/user-home-844301.htm
-    底层直接调用库函数：sendto/recvfrom函数                                         (all_in_one.js能hook到)
-        使用库函数syscall + sendto/recvfrom调用号                                 (hook 库函数syscall)
-           自实现内联汇编sendto/recvfrom(即,使用汇编实现这2个库函数)                   (内存扫描+inline hook)、(ptrace[seccomp过滤] + PTRACE_SYSCALL)
-           自实现内联汇编syscall + sendto/recvfrom调用号(即,使用汇编实现库函数syscall)
-
-[-]
-[+]
-
-【抓包阻碍大致解决流程】：
-vpn检测：hook_vpn.js
-    c校验s：
-      github项目：pinning_DroidSSLUnpinning.js、pinning_multi_unpinning.js、pinning_just_trust_me_frida.js
-      综合：pinning_SSLUnPinning.js
-      暴力：pinning_SSLUnPinning2.js
-      通用：pinning_hook_File.js
-
-      (针对)：okhttp：pinning_hook_okhttp3.js(推荐度一般)
-      (针对)：okhttp混淆：pinning_just_trust_me_okhttp_hook_finder.js、OkHttpLogger-Frida
-      (备用)：单步调试frida：https://bbs.kanxue.com/thread-265160.htm
-           cert_20201128capture.js【通过hook不让进程被kill从而过掉校验服务端证书，缺点:正常kill进程的逻辑也失效了。】
-
-
-    s校验c： [r0capture中keystore相关]：cert_saveClientCer.js、cert_saveClientCer2.js、cert_savePrivateKey.js
-                              [其他]：cert_hook_android_Cert、cert_keystore_dump.js、cert_tracer_keystore.js
-        原生系统底层：lesson7_all_in_one.js
-            其他情况：( 针对于拓展了解[防御篇] )：
-                hook syscall
-                内存扫描+inline hook
-                ptrace(seccomp过滤) + PTRACE_SYSCALL
-                源码级内核模块开发
 
 
 【抓包经验】：

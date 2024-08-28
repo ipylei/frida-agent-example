@@ -59,62 +59,38 @@ function hook_pthread() {
         //下标为2的参数 - 所在so文件的基地址
         var offset = parg2 - so_base;
         //将hook到的所有so文件名、偏移全打印出来
-        console.log(`hooked -----> so_name:${so_name},  offset:${offset},  path:${so_path},  parg2:${parg2}`);
+        console.log(`hooked -----> so_name:${so_name},  offset:${offset},  parg2:${parg2}, path:${so_path}`);
 
         var PC = 0;
-        /*
         // 注意一：这里根据实际情况更改
-        if (false
-            //(so_name.indexOf("libJDMobileSec.so") > -1)
-            //(so_name.indexOf("libart.so") > -1)
-            //|| (so_name.indexOf("libutils.so") > -1)
-            //|| (so_name.indexOf("libmsaoaidsec.so") > -1)
-
-        ) {
-            console.log(`√√√ anti bypass ${so_name}=>${offset}`);
+        if (so_name.indexOf("libJDMobileSec.so") > -1 || (so_name.indexOf("libmsaoaidsec.so") > -1)) {
             if (so_name === "libart.so" && offset === 2512957) {
                 console.log(`√√√ anti bypass ${so_name}=>${offset}`);
-            }
-                //else if (so_name === "libutils.so" && offset === 54405) { //感觉没啥用
-                //    console.log(`√√√ anti bypass ${so_name}=>${offset}`);
-                //} else if ((offset === 69396 && so_name === "libutils.so")) { //这个要了会阻塞死app
-                //    console.log(`√√√ anti bypass ${so_name}=>${offset}`);
-            //}
-            else {
+                PC = 0;
+            } else {
                 PC = pthread_create(parg0, parg1, parg2, parg3);
             }
         } else {
             PC = pthread_create(parg0, parg1, parg2, parg3);
         }
-        */
 
-        let enable = true;
-        var PC = 0;
-        // 注意一：这里根据实际情况更改
-        if (so_name.indexOf("libexec.so") > -1) {
-            if (offset == 204560) {
-                enable = false;
-                console.log(`√√√ anti bypass ${so_name}=>${offset}`);
-            }
-
-        }
-        if (enable) {
-            PC = pthread_create(parg0, parg1, parg2, parg3);
-        }
-
-
+        //正常逻辑
+        //PC = pthread_create(parg0, parg1, parg2, parg3);
         return PC;
     }, "int", ["pointer", "pointer", "pointer", "pointer"]))
 
 }
-
-// hook_strstr();
-//hook_pthread();
-
 
 function main() {
     //hook_strstr();
     hook_pthread();
 }
 
-setImmediate(main)
+setImmediate(main);
+
+
+/*
+    1.直接不让检测线程启动：          Interceptor.replace(pthread_create, new NativeCallback(){ if(arg[2]=="libxxx.so"){return 0;}});
+    2.直接将目标方法替换为空：        Interceptor.replace(func_addr, new NativeCallback());
+    3.检测逻辑直接nop掉：            blx func -> nop
+ */

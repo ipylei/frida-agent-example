@@ -14,11 +14,20 @@ def leftRotate(chunk, rotateLength):
 
 def sha1Function(message):
     # initial hash values
+
+    # h0 = 0x67452301
+    # h1 = 0xEFCDAB89
+    # h2 = 0x98BADCFE
+    # h3 = 0x10325476
+    # h4 = 0xC3D2E1F0
+
     h0 = 0x67452301
     h1 = 0xEFCDAB89
-    h2 = 0x98BADCFE
+    h2 = 0x98BACCFE  # 魔改
     h3 = 0x10325476
     h4 = 0xC3D2E1F0
+
+
 
     messageLength = ""
 
@@ -73,6 +82,11 @@ def sha1Function(message):
                 f = b ^ c ^ d
                 k = 0xCA62C1D6
 
+            # ((leftRotate(a, 5) + f + e + k + w[i]) -> a
+            # a -> b
+            # leftRotate(b, 30) -> c
+            # c -> d
+            # d -> e
             a, b, c, d, e = ((leftRotate(a, 5) + f + e + k + w[i]) & 0xffffffff, a, leftRotate(b, 30), c, d)
 
         h0 = h0 + a & 0xffffffff

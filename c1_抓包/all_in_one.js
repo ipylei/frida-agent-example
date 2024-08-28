@@ -43,6 +43,11 @@ function byte_to_ArrayBuffer(bytes) {
 
 //将java数组转换成c++的byte[]。并且hexdump打印结果
 function print_bytes(bytes, size) {
+    //var content="";
+    //for (var n = 0; n < bytes.length; n++) {
+    //    content += String.fromCharCode(aa[n]);
+    //}
+
     var buf = Memory.alloc(bytes.length);
     Memory.writeByteArray(buf, byte_to_ArrayBuffer(bytes));
     console.log(hexdump(buf, {offset: 0, length: size, header: false, ansi: true}));
@@ -56,6 +61,7 @@ function getSocketData(fd) {
     // console.log("fd:",fd);
     var socketType = Socket.type(fd)
     if (socketType != null) {
+        //type: tcp4 or tcp6
         var res = "type:" + socketType + ",loadAddress:" + JSON.stringify(Socket.localAddress(fd)) + ",peerAddress" + JSON.stringify(Socket.peerAddress(fd));
         return res;
     } else {
@@ -85,7 +91,7 @@ function getudpaddr(addrptr) {
 }
 
 
-// 1.1 TCP java层hook (Android 8.1.0、Android 10)
+// 【1.1】 TCP java层hook (Android 8.1.0、Android 10)
 // java.net.Socket$init(ip,port) 获取ip和端口
 // socketWrite0(FileDescriptor fd, byte[] b, int off,int len) 获取发送的数据
 // socketRead0(FileDescriptor fd, byte b[], int off, int len,int timeout) 获取接受的数据
@@ -124,44 +130,52 @@ function hook_tcp_java() {
     };
 }
 
-// 1.2 UDP java层hook (Android 8.1.0)
+// 【2.1】 UDP java层hook (Android 8.1.0)
 // private native int sendtoBytes(FileDescriptor fd, Object buffer, int byteOffset, int byteCount, int flags, InetAddress inetAddress, int port) throws ErrnoException, SocketException;
 // private native int sendtoBytes(FileDescriptor fd, Object buffer, int byteOffset, int byteCount, int flags, SocketAddress address) throws ErrnoException, SocketException;
 // private native int recvfromBytes(FileDescriptor fd, Object buffer, int byteOffset, int byteCount, int flags, InetSocketAddress srcAddress) throws ErrnoException, SocketException;
 function hook_udp_java() {
     var LinuxClass = Java.use("libcore.io.Linux");
+
+
+    //发送
     LinuxClass.sendtoBytes.overload('java.io.FileDescriptor', 'java.lang.Object', 'int', 'int', 'int', 'java.net.SocketAddress').implementation = function () {
         var result = this.sendtoBytes.apply(this, arguments);
-        console.log("sendtoBytes1", arguments[5]);
         var arg1 = arguments[1];
         var bytearray = Java.array('byte', arg1);
-        print_bytes(bytearray, result);
+
+        console.log(">>>> sendtoBytes1", arguments[5]);
+        print_bytes(bytearray, result);   //需要result，因为是长度信息
         return result;
 
     }
     //发送
     LinuxClass.sendtoBytes.overload('java.io.FileDescriptor', 'java.lang.Object', 'int', 'int', 'int', 'java.net.InetAddress', 'int').implementation = function () {
         var result = this.sendtoBytes.apply(this, arguments);
-        console.log("sendtoBytes2", arguments[5], arguments[6]);
         var arg1 = arguments[1];
         var bytearray = Java.array('byte', arg1);
-        print_bytes(bytearray, result);
+
+        console.log(">>>> sendtoBytes2", arguments[5], arguments[6]);
+        print_bytes(bytearray, result);   //需要result，因为是长度信息
         return result;
     }
     //接收
-    LinuxClass.recvfromBytes.implementation = function () {
+    //LinuxClass.recvfromBytes.implementation = function () {
+    LinuxClass.recvfromBytes.overload('java.io.FileDescriptor', 'java.lang.Object', 'int', 'int', 'int', 'java.net.InetSocketAddress').implementation = function (a, b, c, d, e, f) {
         var result = this.recvfromBytes.apply(this, arguments);
-        console.log("recvfromBytes", arguments[5]
-        );
         var arg1 = arguments[1];
         var bytearray = Java.array('byte', arg1);
-        print_bytes(bytearray, result);
+
+        //var holder = f.holder.value;
+        //console.log(holder.toString());
+        console.log("<<<< recvfromBytes", arguments[5]);
+        print_bytes(bytearray, result);   //需要result，因为是长度信息
         return result;
     }
 
 }
 
-// 1.3 TCP\UDP\HTTP
+// 【1.2、2.2】 TCP\UDP\HTTP
 // JNI层hook (Android 8.1.0)
 function hook_jni_tcp_udp() {
     var sendtoPtr = Module.getExportByName("libc.so", "sendto");
@@ -279,14 +293,12 @@ function hook_jni_ssl() {
     //int SSL_write(SSL *ssl, const void *buf, int num)
     Interceptor.attach(sslWritePtr, {
         onEnter: function (args) {
-            var sslPtr = args[0];
-            var buff = args[1];
-            var size = ptr(args[2]).toInt32();
+            var sslPtr = args[0];                    //ssl
+            var buff = args[1];                      //buf
+            var size = ptr(args[2]).toInt32();       //num
             if (size > 0) {
                 var fd = sslGetFdFunc(sslPtr);
                 var sockdata = getSocketData(fd);
-                //ddd = this;
-                // console.log("SSL_write", ddd==this, this, ddd);
 
                 console.log("SSL_write", sockdata);
                 //console.log(hexdump(buff, {length: size}));
@@ -310,7 +322,6 @@ function hook_jni_ssl() {
             if (size > 0) {
                 var fd = sslGetFdFunc(this.sslPtr);
                 var sockdata = getSocketData(fd);
-                // console.log("SSL_read", this==ddd, this, ddd);
 
                 console.log("SSL_read", sockdata);
                 console.log(hexdump(this.buff, {length: size}));

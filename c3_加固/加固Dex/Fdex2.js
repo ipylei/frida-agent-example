@@ -82,15 +82,18 @@ function main() {
             console.log("StubAPP.attachBaseContext called!");
             var result = this.attachBaseContext(arg0);
             console.log("StubAPP.attachBaseContext called over!");
+
             fdex2("com.touchtv.module_live.view.activity.SearchHotTVColumnActivity");
             return result;
         }
-        /*        StubAPP.onCreate.implementation = function () {
-                    var result = this.onCreate();
-                    console.log("StubAPP.onCreate called over!");
-                    fdex2("com.touchtv.module_news.view.activity.VideoBigActivity");
-                    return result;
-                }*/
+
+        /*
+        StubAPP.onCreate.implementation = function () {
+        var result = this.onCreate();
+        console.log("StubAPP.onCreate called over!");
+        fdex2("com.touchtv.module_news.view.activity.VideoBigActivity");
+        return result;
+        }*/
     })
 }
 

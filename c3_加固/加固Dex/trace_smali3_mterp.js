@@ -47,40 +47,46 @@ function hook_mterp() {
     }
     PrettyMethodfunc = new NativeFunction(PrettyMethodaddr, ["pointer", "pointer", "pointer"], ["pointer", "int"]);
 
-    //打印下面4个解释器引擎入口函数，当前执行的Java方法(ArtMethod)名称
+    //打印下面引擎入口函数，当前执行的Java方法(ArtMethod)名称    【注意：加上容易卡死】
     //当然直接Hook Execute更好，这样就只hook了一个地方
-    libart.enumerateSymbols().forEach(function (symbol) {
-        if (symbol.name.indexOf("ExecuteMterpImpl") != -1) {
-            Interceptor.attach(symbol.address, {
-                onEnter: function (args) {
-                    let shadowFrame_ptr = args[2];
-                    let artMethodPtr = shadowFrame_ptr.add(Process.pointerSize).readPointer();
-                    let funcName = getArtMethodName(artMethodPtr);
-                    console.log("[" + Process.getCurrentThreadId() + "] ExecuteMterpImpl", funcName);
-                },
-                onLeave: function (retval) {
-
-                }
-            })
-        }
-    })
+    //libart.enumerateSymbols().forEach(function (symbol) {
+    //    if (symbol.name.indexOf("ExecuteMterpImpl") != -1) {
+    //        Interceptor.attach(symbol.address, {
+    //            onEnter: function (args) {
+    //                let shadowFrame_ptr = args[2];
+    //                let artMethodPtr = shadowFrame_ptr.add(Process.pointerSize).readPointer();
+    //                let funcName = getArtMethodName(artMethodPtr);
+    //                console.log("[" + Process.getCurrentThreadId() + "] ExecuteMterpImpl", funcName);
+    //            },
+    //            onLeave: function (retval) {
+    //
+    //            }
+    //        })
+    //    }
+    //})
 
     //取smali指令的地方
     let pattern = "FF C0 07 E2 8C F3 88 E0";
     Memory.scan(libart.base, libart.size, pattern, {
         onMatch: function (match) {
-            console.log("get-> ", match)
-            console.log(hexdump(match));
+            //console.log("get-> ", match)
+            //console.log(hexdump(match, {length: 128}));
 
-            let addr = match.add(0x1)
-            disassemble(addr, 5); //thumb指令还是需要+1
+            let addr = match;
+            //disassemble(addr, 5); //thumb指令还是需要+1
 
             //hook上
             Interceptor.attach(addr, {
                 onEnter: function (args) {
                     //打印寄存器
-                    console.log("[" + Process.getCurrentThreadId() + "]", JSON.stringify(this.context));
-                    //打印寄存器的内容(smali指令码)。 这里是汇编取出操作码存放到寄存器 (02:08:30)
+                    //console.log("[" + Process.getCurrentThreadId() + "]", JSON.stringify(this.context));
+                    //(02:08:30) r7是opcode
+
+                    //.text:003EAC38 90 FF FF FA                 BLX             MterpSetUpHotnessCountdown
+                    //.text:003EAC3C 00 A0 A0 E1                 MOV             R10, R0
+                    //.text:003EAC40 B0 70 D4 E1                 LDRH            R7, [R4]
+                    //.text:003EAC44 FF C0 07 E2                 AND             R12, R7, #0xFF
+                    //.text:003EAC48 8C F3 88 E0                 ADD             PC, R8, R12,LSL#7
                     console.log(this.context.r7);
                 },
                 onLeave: function (retval) {
@@ -102,7 +108,11 @@ function hook_mterp() {
 }
 
 function main() {
-
+    hook_mterp();
 }
 
 setImmediate(main)
+
+
+/* frida hook汇编实现的解释器其取smali指令的地方，打印取出的opCode (参考Fart课时31)
+* */
