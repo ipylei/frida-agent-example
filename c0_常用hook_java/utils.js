@@ -15,17 +15,18 @@ function logEnd() {
 
 
 //java层打印调用栈
+let androidLogClz = Java.use("android.util.Log");
+let exceptionClz = Java.use("java.lang.Exception");
+let threadClz = Java.use("java.lang.Thread");
 function printStack(tag = "") {
-    let threadClz = Java.use("java.lang.Thread");
-    let androidLogClz = Java.use("android.util.Log");
-    let exceptionClz = Java.use("java.lang.Exception");
+    // let currentThread = threadClz.currentThread();
+    // let threadId = currentThread.getId();
+    // let threadName = currentThread.getName();
+    // let stackInfo = androidLogClz.getStackTraceString(exceptionClz.$new()).substring(20);
+    // let logContent = `${tag}\n--->threadId=>${threadId}, threadName=>${threadName}, stackInfo=>\n${stackInfo}`;
 
-    let currentThread = threadClz.currentThread();
-    let threadId = currentThread.getId();
-    let threadName = currentThread.getName();
     let stackInfo = androidLogClz.getStackTraceString(exceptionClz.$new()).substring(20);
-
-    let logContent = `${tag}\n--->threadId=>${threadId}, threadName=>${threadName}, stackInfo=>\n${stackInfo}`;
+    let logContent = `${tag}\n--->[${Process.getCurrentThreadId()}], stackInfo=>\n${stackInfo}`;
     console.log(logContent);
 
     //console.log(Java.use("android.util.Log").getStackTraceString(Java.use("java.lang.Exception").$new()))

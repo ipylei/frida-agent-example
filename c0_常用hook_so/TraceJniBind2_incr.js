@@ -41,7 +41,36 @@ function readStdString(str) {
     return str.add(2 * Process.pointerSize).readPointer().readUtf8String();
 }
 
-function getArtMethodFuncName(artmethodptr) {
+
+var PrettyMethodfunc;
+
+function init() {
+    let libart = Process.getModuleByName("libart.so");
+
+    //找打PrettyMethod()，用于打印ArtMethod
+    let PrettyMethodaddr = null;
+    let exp_exports = libart.enumerateExports();
+    for (let symbol of exp_exports) {
+        if (symbol.name.indexOf("PrettyMethod") != -1 && symbol.name.indexOf("ArtMethod") != -1 && symbol.name.indexOf("art") != -1) {
+            Log("find PrettyMethod:" + JSON.stringify(symbol));
+            PrettyMethodaddr = symbol.address;
+            break;
+        }
+    }
+    PrettyMethodfunc = new NativeFunction(PrettyMethodaddr, ["pointer", "pointer", "pointer"], ["pointer", "int"]);
+}
+
+//将PrettyMethod()的结果打印出来
+function getArtMethodName(artMethodPtr) {
+    let result = PrettyMethodfunc(artMethodPtr, 1);
+    let stdString = Memory.alloc(3 * Process.pointerSize);
+    stdString.writePointer(result[0]);
+    stdString.add(1 * Process.pointerSize).writePointer(result[1]);
+    stdString.add(2 * Process.pointerSize).writePointer(result[2]);
+    return readStdString(stdString);
+}
+
+/*function getArtMethodFuncName(artmethodptr) {
     var libartmodule = Process.getModuleByName("libart.so");
     var PrettyMethodaddr1 = libartmodule.getExportByName("_ZN3art9ArtMethod12PrettyMethodEPS0_b");
     var PrettyMethodaddr2 = libartmodule.getExportByName("_ZN3art9ArtMethod12PrettyMethodEb");
@@ -56,7 +85,7 @@ function getArtMethodFuncName(artmethodptr) {
     ptr(stdstring).add(2 * Process.pointerSize).writePointer(result[2]);
     var funcnamestring = readStdString(stdstring);
     return funcnamestring;
-}
+}*/
 
 function tracefirstbind() {
 //void ArtMethod::UnregisterNative()->_ZN3art9ArtMethod16UnregisterNativeEv
@@ -70,7 +99,7 @@ function tracefirstbind() {
         Interceptor.attach(UnregisterNativeaddr, {
             onEnter: function (args) {
                 var artmethodptr = ptr(args[0]);
-                var funcnamestring = getArtMethodFuncName(artmethodptr);
+                var funcnamestring = getArtMethodName(artmethodptr);
                 console.log("UnregisterNative->" + funcnamestring);
 
             }, onLeave: function (retval) {
@@ -165,7 +194,7 @@ function traceotherbind() {
             onEnter: function (args) {
                 var artmethodptr = args[0];
                 var bindaddr = args[1];
-                var funcnaame = getArtMethodFuncName(ptr(artmethodptr));
+                var funcnaame = getArtMethodName(ptr(artmethodptr));
                 var funcdetail = DebugSymbol.fromAddress(bindaddr);
                 console.log('[RegisterNative]' + funcnaame + ",addr:" + bindaddr + ",==>" + funcdetail);
 
@@ -189,6 +218,7 @@ function tracejnibind() {
 }
 
 function main() {
+    init();
     tracejnibind();
 }
 
@@ -197,7 +227,7 @@ setImmediate(main);
 /*
 相比于TraceJniBind1.js，虽然没有hook libc中的dlsym
 
-但hook了静态注册：
+但hook了静态注册： TODO hook 64位的情况
     静态注册：FindNativeMethodInternal
     动态注册：env->RegisterNatives()
     动态+静态：ArtMethod::RegisterNative

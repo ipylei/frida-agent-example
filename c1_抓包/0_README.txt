@@ -74,3 +74,7 @@ vpn检测：hook_vpn.js
             方案二：
                 hook File相关函数，因为总会打开证书文件
     若开始VPN抓包charles显示no SSL certificate was sent等字样，则大概率是服务端校验客户端。 (过程：证书交换)
+
+
+
+其他：https://github.com/lasting-yang/frida_bypass_ssl_example

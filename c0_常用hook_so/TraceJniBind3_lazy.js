@@ -4,6 +4,7 @@ function getHandle(object) {
         handle = object.$handle;
     } catch (e) {
     }
+
     if (handle == null) {
         try {
             handle = object.$h;
@@ -16,8 +17,8 @@ function getHandle(object) {
             handle = object.handle;
         } catch (e) {
         }
-
     }
+
     return handle;
 }
 

@@ -1,4 +1,4 @@
-function hook() {
+function hook_dlopen() {
     var dlopen = Module.findExportByName(null, "dlopen");
     var android_dlopen_ext = Module.findExportByName(null, "android_dlopen_ext");
 

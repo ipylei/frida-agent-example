@@ -108,11 +108,11 @@ function inspectObject(obj, input) {
     var isInstance = false;
     var obj_class = null;
 
-    //是一个frida包装对象
+    //没有$handle属性，则是一个frida包装对象。如Java.use("xxx")
     if (getHandle(obj) === null) {
         obj_class = obj.class;
     }
-    //不是一个frida包装对象，有$handle等属性，即在内存中的地址
+    //有$handle属性，不是一个frida包装对象，而是真实的对象(其$handle为内存中的地址、指针)。如Java.enumerateClassLoadersSync()获取到的loader
     else {
         var Class = Java.use("java.lang.Class");
         obj_class = Java.cast(obj.getClass(), Class);

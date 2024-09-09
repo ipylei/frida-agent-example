@@ -47,11 +47,13 @@ function disassemble(address, count) {
         try {
             var ins = Instruction.parse(ptr(address));
             console.log("" + ptr(address) + ": " + ins.mnemonic + " " + ins.opStr);
+            //address = address.add(4);
+            address = ins.next;
 
         } catch (e) {
 
         }
-        address = address.add(4);
+
     }
 
 }
@@ -168,10 +170,11 @@ function hook_constructor() {
                                         var instruction;
                                         var basicblockstart = false;
                                         while ((instruction = iterator.next()) !== null) {
-                                            //编译轨迹
+                                            //编译轨迹：按基本块编译，但是不一定执行该基本块中的所有指令，比如跳转指令跳转到其他基本块
                                             console.log(Process.getCurrentThreadId()
                                                 + "compile---addr:" + DebugSymbol.fromAddress(instruction.address)
                                                 + "->" + instruction + "");
+
                                             //执行轨迹
                                             /* iterator.putCallout(function (context) {
                                                  var inst = Instruction.parse(context.pc).toString();
@@ -187,7 +190,6 @@ function hook_constructor() {
                                         }
                                     }
                                 });
-
                             },
                             //----------
                             onLeave: function (retval) {

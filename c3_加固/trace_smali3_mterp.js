@@ -47,8 +47,10 @@ function hook_mterp() {
     }
     PrettyMethodfunc = new NativeFunction(PrettyMethodaddr, ["pointer", "pointer", "pointer"], ["pointer", "int"]);
 
+    //TODO 其实这里就相当于插桩了，只是不知道调用方是谁，还需要实现，但可以在OnLeave中标志结束
+    //直接Hook Execute更好，这样就只hook了一个地方，只是Execute是inline函数
     //打印下面引擎入口函数，当前执行的Java方法(ArtMethod)名称    【注意：加上容易卡死】
-    //当然直接Hook Execute更好，这样就只hook了一个地方
+    //extern "C" bool ExecuteMterpImpl(Thread* self, const DexFile::CodeItem* code_item, ShadowFrame* shadow_frame, JValue* result_register);
     //libart.enumerateSymbols().forEach(function (symbol) {
     //    if (symbol.name.indexOf("ExecuteMterpImpl") != -1) {
     //        Interceptor.attach(symbol.address, {
