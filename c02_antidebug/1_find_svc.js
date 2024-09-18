@@ -20,11 +20,9 @@ function findSyscall(base, size) {
     Memory.scan(base, size, "01 00 00 D4", {
         onMatch: function (matchaddr) {
             var addrinfo = DebugSymbol.fromAddress(matchaddr);
-            console.warn("find a sycsyscall:" + addrinfo);
+            console.warn("find a sycsyscall: " + addrinfo);
             disassemble(matchaddr.sub(4), 4);
             svcsyscalladdrlist.push(matchaddr);
-
-
         }, onComplete: function () {
             console.warn("search svc syscall over");
         }
@@ -34,8 +32,10 @@ function findSyscall(base, size) {
 function findSyscallByEnumerateRange() {
     LogPrint("go into findsyscallbyenumeraterange");
     Process.enumerateRanges('r-x').forEach(function (range) {
+        //console.error(JSON.stringify(range));   //先打印，再进行下面的筛选
 
         if (JSON.stringify(range).indexOf("libnative-lib.so") != -1) {
+            //if (range.file && range.file.path.indexOf("libnative-lib.so") != -1) {
             console.error(JSON.stringify(range));
             findSyscall(range.base, range.size);
         }
@@ -103,15 +103,19 @@ function hook_constructor() {
 
     /*
       http://aospxref.com/android-8.1.0_r81/xref/bionic/linker/linker_debug.h#77
-      TRACE("[ Calling d-tor %s @ %p for '%s' ]", function_name, function, realpath);
-      function();
-      TRACE("[ Done calling d-tor %s @ %p for '%s' ]", function_name, function, realpath);
-      
-      而：
       #define TRACE(x...)          _PRINTVF(1, x)
       #define _PRINTVF(v, x...)    if (g_ld_debug_verbosity > (v)) async_safe_format_log(5-(v), "linker", x);  
       
       int async_safe_format_log(int priority, const char* tag, const char* format, ...) {}
+      TRACE("[ Calling %s (size %zd) @ %p for '%s' ]", array_name, count, functions, realpath);
+
+      http://aospxref.com/android-8.1.0_r81/xref/bionic/linker/linker_soinfo.cpp#334
+      static void call_function(...)
+      TRACE("[ Calling c-tor %s @ %p for '%s' ]", function_name, function, realpath);
+
+      //http://aospxref.com/android-8.1.0_r81/xref/bionic/linker/linker_soinfo.cpp?fi=call_constructors#call_array
+      static void call_array(...)
+      TRACE("[ Calling %s (size %zd) @ %p for '%s' ]", array_name, count, functions, realpath);
     */
 
     if (addr_async_safe_format_log) {
@@ -130,7 +134,7 @@ function hook_constructor() {
                     this.function_type = ptr(args[3]).readCString(); //func_type "DT_INIT" or "DT_INIT_ARRAY"
                     this.so_path = ptr(args[5]).readCString();       //so路径
 
-                    var strs = new Array();         //定义一数组
+                    var strs = new Array();                  //定义一数组
                     strs = this.so_path.split("/"); //字符分割
                     this.so_name = strs.pop();
                     this.func_offset = ptr(args[4]).sub(Module.findBaseAddress(this.so_name))
@@ -197,6 +201,9 @@ function hook_constructor() {
                                 Stalker.garbageCollect();
                             }
                         })
+                    }
+                    if(this.function_type == "DT_INIT_ARRAY"){
+                        //...
                     }
 
                     // hook代码在这加

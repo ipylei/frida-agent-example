@@ -83,5 +83,5 @@ function main() {
 
 setImmediate(main);
 
-/* rom定制内核 + frida，从而快速定位到反调试的地方后，这里是后续处理的案例。
+/* rom定制内核快速定位到反调试处，然后使用frida绕过。
 * */

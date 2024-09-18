@@ -71,7 +71,7 @@ function getSocketData(fd) {
 
 //打印Socket连接信息：在Java层
 function getSocketData2(stream) {
-    var data0 = stream.this$0.value;
+    var data0 = stream.this$0.value;  //获取外部类实例对象
     var sockdata = data0.socket.value;
     return sockdata;
 }

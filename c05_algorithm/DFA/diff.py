@@ -21,8 +21,10 @@ SBox = [
 def getSDiff(x, y):
     return SBox[x] ^ SBox[y]
 
+
 def mul_by_01(num):
     return num
+
 
 def mul_by_02(num):
     if num < 0x80:
@@ -31,9 +33,10 @@ def mul_by_02(num):
         res = (num << 1) ^ 0x1b
 
     return res % 0x100
-    
+
+
 def mul_by_03(num):
-    return (mul_by_02(num) ^ num)
+    return mul_by_02(num) ^ num
 
 
 # # 传入两个数，计算S(x) ^ S(y)
@@ -50,22 +53,18 @@ def mul_by_03(num):
 #     return res % 0x100
 
 
-
-# # diff 1
-# diff = 0x10
-# # 使用集合去重
-# zlist = set({})
-# # 遍历z
-# for z in range(0x100):
-#     # 遍历y0
-#     for y0 in range(0x100):
-#         tmp = getSDiff(y0, mul_by_02(z) ^ y0)
-#         if tmp == diff:
-#             zlist.add(z)
-# print(len(zlist))
-
-
-
+# diff 1
+diff = 0x10  # 输出差分为0x10的情况下：
+# 使用集合去重
+zlist = set({})
+# 遍历z
+for z in range(0x100):
+    # 遍历y0
+    for y0 in range(0x100):
+        tmp = getSDiff(y0, mul_by_02(z) ^ y0)  # 输出差分 C + C' = S(Y0) + S(Y0 + 2Z)
+        if tmp == diff:
+            zlist.add(z)
+print(len(zlist))
 
 # diff 2
 z1list = set({})
@@ -75,51 +74,50 @@ z4list = set({})
 zlist = set({})
 for z in range(0x100):
     for y0 in range(0x100):
-        tmp = getSDiff(y0, mul_by_02(z) ^ y0) # 输入差分 = S(Y) + S(Y+2Z)
-        if tmp == (0x8d^0x47):  # 输出差分
+        tmp = getSDiff(y0, mul_by_02(z) ^ y0)  # 输入差分： C0 + C0' = S(Y0) + S(Y0 + 2Z)   [p38]
+        if tmp == (0x8d ^ 0x47):  # 输出差分
             z1list.add(z)
 
     for y1 in range(0x100):
-        tmp = getSDiff(y1, mul_by_03(z) ^ y1)
-        if tmp == (0x3a ^ 0x29):
+        tmp = getSDiff(y1, mul_by_03(z) ^ y1)  # 输出差分：C7 + C7' = S(Y1) + S(Y1 + 3Z)    [p38]
+        if tmp == (0x3a ^ 0x29):  # 输出差分
             z2list.add(z)
 
     for y3 in range(0x100):
-        tmp = getSDiff(y3, z ^ y3)
-        if tmp == (0xd0 ^ 0x84):
+        tmp = getSDiff(y3, z ^ y3)  # 输出差分：C10 + C10' = S(Y2) + S(Y2 + Z)             [p38]
+        if tmp == (0xd0 ^ 0x84):  # 输出差分
             z3list.add(z)
 
     for y4 in range(0x100):
-        tmp = getSDiff(y4, z ^ y4)
-        if tmp == (0xe4 ^ 0x4b):
+        tmp = getSDiff(y4, z ^ y4)  # 输出差分：C13 + C13' = S(Y3) + S(Y3 + Z)             [p38]
+        if tmp == (0xe4 ^ 0x4b):  # 输出差分
             z4list.add(z)
-
 
 print(len(z1list))
 print(len(z2list))
 print(len(z3list))
 print(len(z4list))
 
-#(P34)      正常推导:  C0=S(2A+3B+C+D ^K[9,0]) ^ K[10,0]; C0'=S(2X+3B+C+D ^ K[9,0]) ^ K[10,0]
-#(P36/P41)  建立公式:  C0^C0' = S(Y0)^S(Y0+2Z)
-#(P38/P41)  根据输出差分，筛选出输出差分
+# (P34)      正常推导:  C0=S(2A+3B+C+D ^K[9,0]) ^ K[10,0]; C0'=S(2X+3B+C+D ^ K[9,0]) ^ K[10,0]
+# (P36/P41)  建立公式:  C0^C0' = S(Y0)^S(Y0+2Z)
+# (P38/P41)  根据输出差分，筛选出输出差分
 # 求交集，即满足4个输出差分条件的输入差分(z)
-zlist = set.intersection(z1list,z2list,z3list,z4list)
+zlist = set.intersection(z1list, z2list, z3list, z4list)
 # print(zlist)
 
-#(p41)      根据输出差分1、输入差分[Z]，筛选出Y； 【其实也可以加上输出差分2、3、4】
+# (p41)      根据确定的输出差分、有限个输入差分[Z]，筛选出满足要求的Y0；
 # z 输入差分筛选出一些值
 y0list = set({})  # 把y0的范围拿到
 for z in zlist:
     for y0 in range(0x100):
         tmp = getSDiff(y0, mul_by_02(z) ^ y0)
-        if tmp == (0x8d^0x47): 
+        if tmp == (0x8d ^ 0x47):
             y0list.add(y0)
-print(">>>>>")            
+print(">>>>>")
 print(len(y0list))
 
-
-#(P42)      根据输出和筛选出的Y，筛选出K(子密钥) => 正常输出C0=S(Y)^K(10,0)，所以K(10,0)=S(Y)^C
+# C0 = S(2A+3B+C+D+K9,0)+K10,0 = S(Y0)+K10,0
+# (P42)      根据输出和筛选出的Y，筛选出K(子密钥) => 正常输出C0=S(Y)^K(10,0)，所以K(10,0)=S(Y)^C0
 k12 = set({})
 for y0 in list(y0list):
     k12.add(SBox[y0] ^ 0x8d)
@@ -137,47 +135,4 @@ k4 = {18, 147, 148, 21, 26, 155, 156, 29, 162, 35, 165, 170, 43, 44, 173, 208, 8
 # 求交集
 klist = set.intersection(k1,k2,k3,k4)
 print(klist)
-"""
-
-"""
-y1list = set({})  # 把y0的范围拿到
-for z in zlist:
-    for y0 in range(0x100):
-        tmp = getSDiff(y0, mul_by_02(z) ^ y0)
-        if tmp == (0x3a ^ 0x29): 
-            y1list.add(y0)
-print(">>>>>")            
-print(len(y1list))
-k1l = set({})
-for y0 in list(y1list):
-    k1l.add(SBox[y0] ^ 0x3a)
-    
-
-y2list = set({})  # 把y0的范围拿到
-for z in zlist:
-    for y0 in range(0x100):
-        tmp = getSDiff(y0, mul_by_02(z) ^ y0)
-        if tmp == (0xd0 ^ 0x84): 
-            y2list.add(y0)
-print(">>>>>")            
-print(len(y2list))
-k2l = set({})
-for y0 in list(y2list):
-    k2l.add(SBox[y0] ^ 0xd0)
-    
-
-y3list = set({})  # 把y0的范围拿到
-for z in zlist:
-    for y0 in range(0x100):
-        tmp = getSDiff(y0, mul_by_02(z) ^ y0)
-        if tmp == (0xe4 ^ 0x4b): 
-            y3list.add(y0)
-print(">>>>>")            
-print(len(y3list))
-k3l = set({})
-for y0 in list(y3list):
-    k3l.add(SBox[y0] ^ 0xe4)
-    
-flist = set.intersection(k12,k1l)
-print(flist)
 """
