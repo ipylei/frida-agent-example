@@ -67,7 +67,7 @@ function traceJniBind3_lazy() {
             var artmethod = getHandle(overload);
             var funcname = getnameofArtMethod(ptr(artmethod)); //绑定的函数名
             //console.log(artmethod,funcname);
-            var addr = ptr(artmethod).add(24).readPointer();  //绑定的JNI机器码入口地址
+            var addr = ptr(artmethod).add(24).readPointer();  //绑定的JNI机器码入口地址(24 or 32)
             //console.log(hexdump(ptr(artmethod)))
             var addrdetail = DebugSymbol.fromAddress(addr);
             console.log(funcname + ",addr:" + addr + ",detail:" + addrdetail);

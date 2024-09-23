@@ -30,5 +30,5 @@ function main() {
 setImmediate(main)
 
 /*
-* 注：frida配合rom使用，trace并打印单条smali指令 (参考Fart课时29)
+* 注：frida配合rom使用，trace并打印单条smali指令 (29)
 * */

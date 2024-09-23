@@ -116,5 +116,5 @@ function main() {
 setImmediate(main)
 
 
-/* frida hook汇编实现的解释器其取smali指令的地方，打印取出的opCode (参考Fart课时31)
+/* frida hook汇编实现的解释器其取smali指令的地方，打印取出的opCode (31)
 * */

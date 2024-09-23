@@ -38,15 +38,14 @@ function hook_RegisterNatives(addrRegisterNatives) {
                     let name = Memory.readCString(name_ptr);
                     let sig = Memory.readCString(sig_ptr);
 
-                    let symbol = DebugSymbol.fromAddress(fnPtr_ptr);
+                    //let symbol = DebugSymbol.fromAddress(fnPtr_ptr);
                     // let module_name = /\w+.so/.exec(symbol.toString())[0];  //0x7cbcd56114 liblessontest.so!_Z8onCreateP7_JNIEnvP8_jobjectS2_
                     // let module_addr = Module.findBaseAddress(module_name);
 
                     let module = Process.findModuleByAddress(fnPtr_ptr);
+                    let module_name = module.name;
                     let module_addr = module.base;
-                    // console.log("[RegisterNatives] java_class:", class_name, "name:", name, "sig:", sig, "fnPtr:", fnPtr_ptr,  " fnOffset:", symbol, " callee:", DebugSymbol.fromAddress(this.returnAddress));
-                    // console.log(`----->[RegisterNatives] 类名=> ${class_name}", 方法名=> ${name}, 方法签名=> ${sig}, 内存地址=>${fnPtr_ptr}, 所在模块信息=> ${symbol}, 调用者=> ${DebugSymbol.fromAddress(this.returnAddress)}`);
-                    console.log(`----->[RegisterNatives] 类名=> ${class_name}", 方法名=> ${name}, 方法签名=> ${sig}, 所在模块名=> ${symbol}, offset=> ${fnPtr_ptr.sub(module_addr)}`);
+                    console.log(`----->[RegisterNatives] 类名=> ${class_name}", 方法名=> ${name}, 方法签名=> ${sig}, 所在模块名=> ${module_name}, offset=> ${fnPtr_ptr.sub(module_addr)}`);
                 }
             }
         });

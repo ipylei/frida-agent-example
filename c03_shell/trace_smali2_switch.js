@@ -103,5 +103,5 @@ function main() {
 setImmediate(main)
 
 
-/* frida hook switch实现的解释器其取smali指令的地方，打印出opCode (参考Fart课时31)
+/* frida hook switch实现的解释器其取smali指令的地方，打印出opCode (31)
 * */

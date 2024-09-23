@@ -225,5 +225,5 @@ function main() {
 
 setImmediate(main);
 
-/*使用frida主动调用Instruction中的api，打印进入解释器时，正在执行的方法(ArtMethod)相关信息  (参考Fart课时36)
+/*使用frida主动调用Instruction中的api，打印进入解释器时，正在执行的方法(ArtMethod)相关信息  (36)
 * */

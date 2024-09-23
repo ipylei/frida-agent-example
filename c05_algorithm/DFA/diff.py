@@ -57,7 +57,7 @@ def mul_by_03(num):
 diff = 0x10  # 输出差分为0x10的情况下：
 # 使用集合去重
 zlist = set({})
-# 遍历z
+# Z是输入差分！现在只根据结果直到输出差分，所以穷举输入差分，其中Z和Y都是0~255
 for z in range(0x100):
     # 遍历y0
     for y0 in range(0x100):
@@ -101,7 +101,7 @@ print(len(z4list))
 # (P34)      正常推导:  C0=S(2A+3B+C+D ^K[9,0]) ^ K[10,0]; C0'=S(2X+3B+C+D ^ K[9,0]) ^ K[10,0]
 # (P36/P41)  建立公式:  C0^C0' = S(Y0)^S(Y0+2Z)
 # (P38/P41)  根据输出差分，筛选出输出差分
-# 求交集，即满足4个输出差分条件的输入差分(z)
+# 求交集，即满足4个输出差分条件的输入差分(Z)
 zlist = set.intersection(z1list, z2list, z3list, z4list)
 # print(zlist)
 
